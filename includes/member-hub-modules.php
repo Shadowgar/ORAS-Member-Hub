@@ -44,8 +44,8 @@ if ( ! function_exists( 'oras_member_hub_module_conditions_summary' ) ) {
 	 * @return string
 	 */
 	function oras_member_hub_module_conditions_summary() {
-		$payload = class_exists( 'ORAS_MH_Conditions_Service' )
-			? ORAS_MH_Conditions_Service::get_payload()
+		$payload = class_exists( '\\ORAS_MH_Conditions_Service' )
+			? \ORAS_MH_Conditions_Service::get_payload()
 			: array(
 				'score'              => 0,
 				'badge'              => __( 'Poor', 'oras-member-hub' ),
@@ -353,7 +353,7 @@ if ( ! function_exists( 'oras_mh_get_attending_events_map' ) ) {
 		);
 
 		foreach ( $paths as $path ) {
-			$request = new WP_REST_Request( 'GET', $path );
+			$request = new \WP_REST_Request( 'GET', $path );
 
 			if ( '/oras-tickets/v1/me/tickets' === $path ) {
 				$request->set_param( 'scope', 'all' );
@@ -546,7 +546,7 @@ if ( ! function_exists( 'oras_mh_module_upcoming_events' ) ) {
 				}
 			}
 		} else {
-			$fallback_query = new WP_Query(
+			$fallback_query = new \WP_Query(
 				array(
 					'post_type'      => 'tribe_events',
 					'post_status'    => 'publish',
@@ -710,6 +710,7 @@ if ( ! function_exists( 'oras_mh_module_upcoming_events' ) ) {
 							);
 
 							$content .= '<li><a class="oras-events-hud__print-link" href="' . esc_url( $print_url ) . '">' . sprintf(
+								/* translators: %d: ticket order ID. */
 								esc_html__( 'Order #%d — Print', 'oras-member-hub' ),
 								(int) $order_id
 							) . '</a></li>';
@@ -905,8 +906,8 @@ if ( ! function_exists( 'oras_member_hub_module_resources' ) ) {
 	 * @return string
 	 */
 	function oras_member_hub_module_resources() {
-		$toolkit      = oras_mh_get_observing_toolkit_items();
-		$links        = isset( $toolkit['links'] ) && is_array( $toolkit['links'] ) ? $toolkit['links'] : array();
+		$toolkit            = oras_mh_get_observing_toolkit_items();
+		$links              = isset( $toolkit['links'] ) && is_array( $toolkit['links'] ) ? $toolkit['links'] : array();
 		$allowed_categories = apply_filters( 'oras_mh_observing_toolkit_allowed_categories', array() );
 		$allowed_categories = is_array( $allowed_categories ) ? array_map( 'strtolower', array_map( 'trim', $allowed_categories ) ) : array();
 
@@ -915,50 +916,48 @@ if ( ! function_exists( 'oras_member_hub_module_resources' ) ) {
 		if ( empty( $links ) ) {
 			$content .= '<p>' . esc_html__( 'Toolkit resources coming soon.', 'oras-member-hub' ) . '</p>';
 		} else {
-			if ( ! empty( $links ) ) {
-				$content .= '<h4 class="oras-toolkit__heading">' . esc_html__( 'Quick Links', 'oras-member-hub' ) . '</h4>';
-				$content .= '<ul class="oras-toolkit__grid">';
+			$content .= '<h4 class="oras-toolkit__heading">' . esc_html__( 'Quick Links', 'oras-member-hub' ) . '</h4>';
+			$content .= '<ul class="oras-toolkit__grid">';
 
-				foreach ( $links as $item ) {
-					if ( ! is_array( $item ) ) {
-						continue;
-					}
-
-					$title       = isset( $item['title'] ) ? trim( (string) $item['title'] ) : '';
-					$url         = isset( $item['url'] ) ? (string) $item['url'] : '';
-					$description = isset( $item['description'] ) ? trim( (string) $item['description'] ) : '';
-					$category    = isset( $item['category'] ) ? trim( (string) $item['category'] ) : '';
-					$category_key = strtolower( $category );
-
-					if ( '' === $title || '' === $url ) {
-						continue;
-					}
-
-					if ( ! empty( $allowed_categories ) && ! in_array( $category_key, $allowed_categories, true ) ) {
-						continue;
-					}
-
-					$is_visible = (bool) apply_filters( 'oras_mh_observing_toolkit_link_visible', true, $item, $category );
-					if ( ! $is_visible ) {
-						continue;
-					}
-
-					$content .= '<li class="oras-toolkit__row oras-toolkit__row--hud">';
-					$content .= '<p class="oras-toolkit__title"><a class="oras-toolkit__link" href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $title ) . '</a> <span class="oras-toolkit__ext" aria-hidden="true">↗</span></p>';
-
-					if ( '' !== $description ) {
-						$content .= '<p class="oras-toolkit__desc">' . esc_html( $description ) . '</p>';
-					}
-
-					if ( '' !== $category ) {
-						$content .= '<p class="oras-toolkit__meta">' . esc_html( $category ) . '</p>';
-					}
-
-					$content .= '</li>';
+			foreach ( $links as $item ) {
+				if ( ! is_array( $item ) ) {
+					continue;
 				}
 
-				$content .= '</ul>';
+				$title       = isset( $item['title'] ) ? trim( (string) $item['title'] ) : '';
+				$url         = isset( $item['url'] ) ? (string) $item['url'] : '';
+				$description = isset( $item['description'] ) ? trim( (string) $item['description'] ) : '';
+				$category    = isset( $item['category'] ) ? trim( (string) $item['category'] ) : '';
+
+				if ( '' === $title || '' === $url ) {
+					continue;
+				}
+
+				$normalized_category = strtolower( trim( $category ) );
+				if ( ! empty( $allowed_categories ) && '' !== $normalized_category && ! in_array( $normalized_category, $allowed_categories, true ) ) {
+					continue;
+				}
+
+				$is_visible = (bool) apply_filters( 'oras_mh_observing_toolkit_link_visible', true, $item, $category );
+				if ( ! $is_visible ) {
+					continue;
+				}
+
+				$content .= '<li class="oras-toolkit__item">';
+				$content .= '<a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $title ) . '</a>';
+
+				if ( '' !== $description ) {
+					$content .= '<p>' . esc_html( $description ) . '</p>';
+				}
+
+				if ( '' !== $category ) {
+					$content .= '<span class="oras-toolkit__category">' . esc_html( $category ) . '</span>';
+				}
+
+				$content .= '</li>';
 			}
+
+			$content .= '</ul>';
 		}
 
 		$content .= '</div>';
@@ -990,7 +989,7 @@ if ( ! function_exists( 'oras_member_hub_module_community_updates' ) ) {
 			)
 		);
 
-		$updates_query = new WP_Query( $query_args );
+		$updates_query = new \WP_Query( $query_args );
 		$content       = '';
 
 		if ( $updates_query->have_posts() ) {
@@ -1054,6 +1053,8 @@ if ( ! function_exists( 'oras_member_hub_sidebar_module_membership_status' ) ) {
 	 */
 	function oras_member_hub_sidebar_module_membership_status() {
 		$manage_url = function_exists( 'pmpro_url' ) ? (string) pmpro_url( 'account' ) : (string) home_url( '/membership-account/' );
+		$module_title = __( 'Member Status', 'oras-member-hub' );
+		$manage_renew_label = esc_html__( 'Manage / Renew membership', 'oras-member-hub' );
 
 		if ( ! is_user_logged_in() ) {
 			$content = sprintf(
@@ -1065,7 +1066,7 @@ if ( ! function_exists( 'oras_member_hub_sidebar_module_membership_status' ) ) {
 
 			$output = oras_member_hub_wrap_module(
 				'membership-status',
-				__( 'Membership Status', 'oras-member-hub' ),
+				$module_title,
 				$content,
 				'sidebar'
 			);
@@ -1076,7 +1077,7 @@ if ( ! function_exists( 'oras_member_hub_sidebar_module_membership_status' ) ) {
 		$current_user = wp_get_current_user();
 
 		if ( ! function_exists( 'pmpro_getMembershipLevelForUser' ) ) {
-			$status  = (string) apply_filters( 'oras_member_hub_membership_status_value', __( 'Membership system unavailable.', 'oras-member-hub' ) );
+			$status  = (string) apply_filters( 'oras_member_hub_membership_status_value', __( 'membership system unavailable.', 'oras-member-hub' ) );
 			$renewal = (string) apply_filters( 'oras_member_hub_membership_renewal_value', __( 'Unknown', 'oras-member-hub' ) );
 
 			$content  = '<p><strong>' . esc_html__( 'Member:', 'oras-member-hub' ) . '</strong> ' . esc_html( $current_user->display_name ) . '</p>';
@@ -1085,7 +1086,7 @@ if ( ! function_exists( 'oras_member_hub_sidebar_module_membership_status' ) ) {
 
 			$output = oras_member_hub_wrap_module(
 				'membership-status',
-				__( 'Membership Status', 'oras-member-hub' ),
+				$module_title,
 				$content,
 				'sidebar'
 			);
@@ -1096,14 +1097,14 @@ if ( ! function_exists( 'oras_member_hub_sidebar_module_membership_status' ) ) {
 		$user_id = (int) $current_user->ID;
 		$level   = pmpro_getMembershipLevelForUser( $user_id );
 
-		if ( empty( $level ) ) {
+		if ( empty( $level ) || ! is_object( $level ) ) {
 			$status  = (string) apply_filters( 'oras_member_hub_membership_status_value', __( 'No active membership found.', 'oras-member-hub' ) );
 			$renewal = (string) apply_filters( 'oras_member_hub_membership_renewal_value', __( 'Unknown', 'oras-member-hub' ) );
 
 			$content  = '<p><strong>' . esc_html__( 'Member:', 'oras-member-hub' ) . '</strong> ' . esc_html( $current_user->display_name ) . '</p>';
 			$content .= '<p><strong>' . esc_html__( 'Status:', 'oras-member-hub' ) . '</strong> ' . esc_html( $status ) . '</p>';
 			$content .= '<p><strong>' . esc_html__( 'Auto-renew:', 'oras-member-hub' ) . '</strong> ' . esc_html( $renewal ) . '</p>';
-			$content .= '<p><a class="button" href="' . esc_url( $manage_url ) . '">' . esc_html__( 'Manage / Renew Membership', 'oras-member-hub' ) . '</a></p>';
+			$content .= '<p><a class="button" href="' . esc_url( $manage_url ) . '">' . $manage_renew_label . '</a></p>';
 
 			if ( ! class_exists( 'WooCommerce' ) ) {
 				$content .= '<p>' . esc_html__( 'Commerce features are currently unavailable.', 'oras-member-hub' ) . '</p>';
@@ -1111,7 +1112,7 @@ if ( ! function_exists( 'oras_member_hub_sidebar_module_membership_status' ) ) {
 
 			$output = oras_member_hub_wrap_module(
 				'membership-status',
-				__( 'Membership Status', 'oras-member-hub' ),
+				$module_title,
 				$content,
 				'sidebar'
 			);
@@ -1119,13 +1120,13 @@ if ( ! function_exists( 'oras_member_hub_sidebar_module_membership_status' ) ) {
 			return (string) apply_filters( 'oras_member_hub_sidebar_membership_status_output', $output, $status, $renewal );
 		}
 
-		$level_name       = isset( $level->name ) ? (string) $level->name : (string) __( 'Unknown', 'oras-member-hub' );
-		$level_id         = isset( $level->id ) ? absint( $level->id ) : 0;
+		$level_name       = ( is_object( $level ) && isset( $level->name ) ) ? (string) $level->name : (string) __( 'Unknown', 'oras-member-hub' );
+		$level_id         = ( is_object( $level ) && isset( $level->id ) ) ? absint( $level->id ) : 0;
 		$expiration_label = (string) __( 'Never', 'oras-member-hub' );
 		$days_remaining   = '';
 		$urgency_message  = '';
 		$is_expired       = false;
-		$enddate_raw      = isset( $level->enddate ) ? (string) $level->enddate : '';
+		$enddate_raw      = ( is_object( $level ) && isset( $level->enddate ) ) ? (string) $level->enddate : '';
 		$end_timestamp    = $enddate_raw ? strtotime( $enddate_raw ) : false;
 
 		if ( false !== $end_timestamp ) {
@@ -1220,12 +1221,12 @@ if ( ! function_exists( 'oras_member_hub_sidebar_module_membership_status' ) ) {
 		}
 
 		if ( $is_expired ) {
-			$content .= '<p><a class="button" href="' . esc_url( $manage_url ) . '">' . esc_html__( 'Manage / Renew Membership', 'oras-member-hub' ) . '</a></p>';
+			$content .= '<p><a class="button" href="' . esc_url( $manage_url ) . '">' . $manage_renew_label . '</a></p>';
 		}
 
 		$output = oras_member_hub_wrap_module(
 			'membership-status',
-			__( 'Membership Status', 'oras-member-hub' ),
+			$module_title,
 			$content,
 			'sidebar'
 		);

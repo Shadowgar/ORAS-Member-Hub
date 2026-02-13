@@ -1,0 +1,46 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Offset 'end_ts' on array\\{event_id\\: int, title\\: mixed, url\\: mixed, start_raw\\: mixed, start_ts\\: int, end_ts\\: int, start\\: mixed, is_ongoing\\: bool\\} in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/member-hub-modules.php
+
+		-
+			message: "#^Offset 'event_id' on array\\{event_id\\: int, title\\: mixed, url\\: mixed, start_raw\\: mixed, start_ts\\: int, end_ts\\: int, start\\: mixed, is_ongoing\\: bool\\} in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/member-hub-modules.php
+
+		-
+			message: "#^Offset 'start_ts' on array\\{event_id\\: int, title\\: mixed, url\\: mixed, start_raw\\: mixed, start_ts\\: int, end_ts\\: int, start\\: mixed, is_ongoing\\: bool\\} in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/member-hub-modules.php
+
+		-
+			message: "#^Offset 'status_priority' on array\\{event_id\\: int, title\\: mixed, url\\: mixed, start_raw\\: mixed, start_ts\\: int, end_ts\\: int, start\\: mixed, is_ongoing\\: bool, \\.\\.\\.\\} in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 2
+			path: includes/member-hub-modules.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: includes/member-hub-modules.php
+
+		-
+			message: "#^While loop condition is always true\\.$#"
+			count: 2
+			path: includes/member-hub-modules.php
+
+		-
+			message: "#^Offset 'astronomical…' on array\\{sunrise\\: bool\\|int, sunset\\: bool\\|int, transit\\: bool\\|int, civil_twilight_begin\\: bool\\|int, civil_twilight_end\\: bool\\|int, nautical_twilight_begin\\: bool\\|int, nautical_twilight_end\\: bool\\|int, astronomical_twilight_begin\\: bool\\|int, \\.\\.\\.\\} in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/services/class-oras-mh-conditions-service.php
+
+		-
+			message: "#^Offset 'sunset' on array\\{sunrise\\: bool\\|int, sunset\\: bool\\|int, transit\\: bool\\|int, civil_twilight_begin\\: bool\\|int, civil_twilight_end\\: bool\\|int, nautical_twilight_begin\\: bool\\|int, nautical_twilight_end\\: bool\\|int, astronomical_twilight_begin\\: bool\\|int, \\.\\.\\.\\} in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/services/class-oras-mh-conditions-service.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between null and float will always evaluate to false\\.$#"
+			count: 1
+			path: includes/services/class-oras-mh-conditions-service.php

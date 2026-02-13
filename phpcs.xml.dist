@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<ruleset name="ORAS Member Hub">
+  <description>Code style and standards checks for ORAS Member Hub.</description>
+
+  <file>oras-member-hub.php</file>
+  <file>includes</file>
+
+  <exclude-pattern>*/vendor/*</exclude-pattern>
+  <exclude-pattern>*/.wp-env/*</exclude-pattern>
+  <exclude-pattern>*/stubs/*</exclude-pattern>
+
+  <rule ref="WordPress-Core"/>
+  <rule ref="WordPress-Extra"/>
+
+  <arg name="extensions" value="php"/>
+  <arg value="sp"/>
+</ruleset>

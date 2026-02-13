@@ -1,0 +1,34 @@
+{
+  "name": "oras/member-hub",
+  "description": "ORAS Member Hub WordPress plugin",
+  "license": "proprietary",
+  "type": "project",
+  "require-dev": {
+    "phpstan/phpstan": "^1.12",
+    "szepeviktor/phpstan-wordpress": "^1.3",
+    "php-stubs/wordpress-stubs": "^6.8",
+    "squizlabs/php_codesniffer": "^3.10",
+    "wp-coding-standards/wpcs": "^3.1",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.1"
+  },
+  "scripts": {
+    "lint:php": "find . -type f -name '*.php' -not -path './vendor/*' -not -path './.wp-env/*' -print0 | xargs -0 -n1 php -l",
+    "lint:phpstan": "phpstan analyse --memory-limit=1G",
+    "lint:phpcs": "phpcs --warning-severity=0",
+    "quality": [
+      "@lint:php",
+      "@lint:phpstan",
+      "@lint:phpcs"
+    ],
+    "quality:ci": [
+      "@lint:php",
+      "@lint:phpstan"
+    ]
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    },
+    "sort-packages": true
+  }
+}

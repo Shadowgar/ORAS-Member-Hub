@@ -1,0 +1,18 @@
+{
+  "intelephense.files.exclude": [
+    "**/.git/**",
+    "**/node_modules/**",
+    "**/.wp-env/**"
+  ],
+  "intelephense.diagnostics.enable": true,
+  "intelephense.diagnostics.undefinedFunctions": true,
+  "intelephense.diagnostics.undefinedConstants": true,
+  "intelephense.diagnostics.undefinedClassConstants": true,
+  "phpcs.enable": true,
+  "phpstan.enabled": true,
+  "phpstan.configFile": "${workspaceFolder}/phpstan.neon",
+  "phpstan.command": "${workspaceFolder}/vendor/bin/phpstan",
+  "intelephense.diagnostics.undefinedTypes": false,
+  "psalm.enabled": false,
+  "php.suggest.basic": false
+}

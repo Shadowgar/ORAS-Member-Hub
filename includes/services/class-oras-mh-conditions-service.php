@@ -97,7 +97,7 @@ if ( ! class_exists( 'ORAS_MH_Conditions_Service' ) ) {
 		/**
 		 * Fetch current weather data from Open-Meteo.
 		 *
-		 * @return array<string, mixed>|WP_Error
+		 * @return array<string, mixed>|\WP_Error
 		 */
 		public static function fetch_weather() {
 			$query = array(
@@ -123,28 +123,28 @@ if ( ! class_exists( 'ORAS_MH_Conditions_Service' ) ) {
 				'forecast_days'    => 1,
 			);
 
-			$url      = add_query_arg( $query, 'https://api.open-meteo.com/v1/forecast' );
-			$response = wp_remote_get(
+			$url             = add_query_arg( $query, 'https://api.open-meteo.com/v1/forecast' );
+			$remote_response = wp_remote_get(
 				$url,
 				array(
 					'timeout' => 6,
 				)
 			);
 
-			if ( is_wp_error( $response ) ) {
-				return $response;
+			if ( is_wp_error( $remote_response ) ) {
+				return $remote_response;
 			}
 
-			$status_code = (int) wp_remote_retrieve_response_code( $response );
+			$status_code = (int) wp_remote_retrieve_response_code( $remote_response );
 
 			if ( 200 !== $status_code ) {
-				return new WP_Error( 'oras_mh_conditions_http', __( 'Conditions endpoint returned a non-200 response.', 'oras-member-hub' ) );
+				return new \WP_Error( 'oras_mh_conditions_http', __( 'Conditions endpoint returned a non-200 response.', 'oras-member-hub' ) );
 			}
 
-			$decoded = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+			$decoded = json_decode( (string) wp_remote_retrieve_body( $remote_response ), true );
 
 			if ( ! is_array( $decoded ) ) {
-				return new WP_Error( 'oras_mh_conditions_json', __( 'Conditions endpoint returned invalid JSON.', 'oras-member-hub' ) );
+				return new \WP_Error( 'oras_mh_conditions_json', __( 'Conditions endpoint returned invalid JSON.', 'oras-member-hub' ) );
 			}
 
 			$current       = isset( $decoded['current'] ) && is_array( $decoded['current'] ) ? $decoded['current'] : array();
@@ -202,7 +202,7 @@ if ( ! class_exists( 'ORAS_MH_Conditions_Service' ) ) {
 		 */
 		public static function compute_astronomy() {
 			$timezone   = wp_timezone();
-			$local_noon = new DateTimeImmutable( 'now', $timezone );
+			$local_noon = new \DateTimeImmutable( 'now', $timezone );
 			$local_noon = $local_noon->setTime( 12, 0, 0 );
 			$sun_info   = date_sun_info( $local_noon->getTimestamp(), self::LATITUDE, self::LONGITUDE );
 
@@ -265,7 +265,7 @@ if ( ! class_exists( 'ORAS_MH_Conditions_Service' ) ) {
 			return array(
 				'phase_name'    => $phase_name,
 				'illumination'  => $illumination,
-				'phase_fraction'=> $phase_fraction,
+				'phase_fraction' => $phase_fraction,
 			);
 		}
 

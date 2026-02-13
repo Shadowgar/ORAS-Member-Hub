@@ -1,0 +1,16 @@
+includes:
+  - phpstan-baseline.neon
+  - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+  level: 6
+  paths:
+    - oras-member-hub.php
+    - includes
+  scanFiles:
+    - stubs/wordpress-signatures.php
+    - stubs/wordpress-function-stubs.php
+  excludePaths:
+    - .wp-env/*
+    - vendor/*
+  reportUnmatchedIgnoredErrors: true
