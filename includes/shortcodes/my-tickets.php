@@ -29,6 +29,9 @@ if ( ! function_exists( 'oras_member_hub_my_tickets_enqueue_assets' ) ) {
 	function oras_member_hub_my_tickets_enqueue_assets() {
 		$script_handle = 'oras-member-hub-my-tickets';
 		$rest_path     = (string) apply_filters( 'oras_member_hub_my_tickets_rest_path_base', '/oras-tickets/v1' );
+		$print_path    = (string) apply_filters( 'oras_member_hub_my_tickets_print_path', '/oras-ticket/print' );
+		$print_base    = site_url( '/' . ltrim( $print_path, '/' ) );
+		$login_url     = wp_login_url( get_permalink() );
 
 		wp_enqueue_script( 'wp-api-fetch' );
 
@@ -47,6 +50,9 @@ if ( ! function_exists( 'oras_member_hub_my_tickets_enqueue_assets' ) ) {
 			'orasMemberHubMyTickets',
 			array(
 				'restPathBase' => '/' . ltrim( $rest_path, '/' ),
+				'printBase'    => $print_base,
+				'isLoggedIn'   => is_user_logged_in(),
+				'loginUrl'     => $login_url,
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 			)
 		);

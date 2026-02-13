@@ -29,6 +29,7 @@ if ( ! defined( 'ORAS_MEMBER_HUB_URL' ) ) {
 	define( 'ORAS_MEMBER_HUB_URL', plugin_dir_url( __FILE__ ) );
 }
 
+require_once ORAS_MEMBER_HUB_PATH . 'includes/services/class-oras-mh-conditions-service.php';
 require_once ORAS_MEMBER_HUB_PATH . 'includes/member-hub-modules.php';
 require_once ORAS_MEMBER_HUB_PATH . 'includes/member-hub-shortcode.php';
 require_once ORAS_MEMBER_HUB_PATH . 'includes/shortcodes/my-tickets.php';

@@ -9,6 +9,9 @@
 	var apiFetch = window.wp.apiFetch;
 	var restBase = normalizeRestBase(config.restPathBase || "/oras-tickets/v1");
 	var requestPath = restBase + "/me/tickets?scope=all&group_by=event&per_page=50";
+	var printBase = normalizePrintBase(config.printBase || "/oras-ticket/print");
+	var isLoggedIn = Boolean(config.isLoggedIn);
+	var loginUrl = safeUrl(config.loginUrl || "");
 	var containers = document.querySelectorAll(".oras-my-tickets[data-widget='oras-my-tickets']");
 
 	if (!containers.length) {
@@ -24,13 +27,33 @@
 	});
 
 	function loadTickets(container) {
+		if (!isLoggedIn) {
+			renderLoginRequired(container);
+			return;
+		}
+
 		apiFetch({ path: requestPath, method: "GET" })
 			.then(function (response) {
 				renderTickets(container, response);
 			})
-			.catch(function () {
-				renderError(container);
+			.catch(function (error) {
+				renderError(container, error);
 			});
+	}
+
+	function renderLoginRequired(container) {
+		clearNode(container);
+		var message = makeParagraph("Please log in to view tickets.");
+
+		if (loginUrl) {
+			var link = document.createElement("a");
+			link.href = loginUrl;
+			link.textContent = "Log in";
+			message.appendChild(document.createTextNode(" "));
+			message.appendChild(link);
+		}
+
+		container.appendChild(message);
 	}
 
 	function renderTickets(container, response) {
@@ -54,8 +77,14 @@
 		}
 	}
 
-	function renderError(container) {
+	function renderError(container, error) {
 		clearNode(container);
+
+		if (error && (error.status === 401 || error.status === 403)) {
+			container.appendChild(makeParagraph("Please log in to view tickets."));
+			return;
+		}
+
 		container.appendChild(makeParagraph("Unable to load tickets right now. Please try again."));
 	}
 
@@ -84,6 +113,7 @@
 		var wrapper = document.createElement("article");
 		wrapper.className = "oras-my-tickets__event";
 		var event = group && typeof group === "object" ? group : {};
+		var eventId = getEventId(event);
 
 		var eventTitle = firstString([
 			event.title,
@@ -119,51 +149,177 @@
 		dateRow.className = "oras-my-tickets__event-date";
 		wrapper.appendChild(dateRow);
 
-		var ticketCount = toNumber(event.total_qty, 0);
-		var countRow = makeParagraph("Tickets: " + String(ticketCount));
+		var ticketCount = toNumber(firstDefined([event.total_qty, event.qty, event.quantity], 0), 0);
+		var countRow = makeParagraph("You have " + String(ticketCount) + " tickets");
 		countRow.className = "oras-my-tickets__event-count";
 		wrapper.appendChild(countRow);
 
-		if (orders.length) {
-			var orderList = document.createElement("ul");
-			orderList.className = "oras-my-tickets__orders";
+		var actions = document.createElement("p");
+		actions.className = "oras-my-tickets__event-actions";
 
-			orders.forEach(function (order) {
-				orderList.appendChild(buildOrderRow(order));
-			});
+		if (eventUrl) {
+			actions.appendChild(makeActionLink("View Event", eventUrl));
+		}
 
-			wrapper.appendChild(orderList);
+		var printOrderList = appendPrintActions(actions, event, eventId, eventTitleText);
+
+		if (actions.childNodes.length) {
+			wrapper.appendChild(actions);
+		}
+
+		if (printOrderList) {
+			wrapper.appendChild(printOrderList);
 		}
 
 		return wrapper;
 	}
 
-	function buildOrderRow(order) {
-		var item = document.createElement("li");
-		item.className = "oras-my-tickets__order";
-
-		var orderUrl = safeUrl(firstString([order.order_view_url, order.view_url, order.url], ""));
-		var orderDate = firstString([order.order_date, order.date, order.created_at], "");
-		var qty = toNumber(order.qty, toNumber(order.quantity, 0));
-
-		if (orderUrl) {
-			var link = document.createElement("a");
-			link.href = orderUrl;
-			link.textContent = "View / print order";
-			link.rel = "noopener noreferrer";
-			item.appendChild(link);
-		} else {
-			var fallbackText = document.createElement("span");
-			fallbackText.textContent = "View / print order";
-			item.appendChild(fallbackText);
+	function appendPrintActions(actionsNode, event, eventId, eventTitleText) {
+		if (!actionsNode || !eventId) {
+			if (!eventId) {
+				console.warn("[ORAS Member Hub] Print unavailable: missing event_id for event group.", event);
+			}
+			actionsNode.appendChild(makeMutedText("Print unavailable"));
+			return null;
 		}
 
-		var meta = document.createElement("span");
-		meta.className = "oras-my-tickets__order-meta";
-		meta.textContent = " - " + formatDateOrTbd(orderDate) + " - Qty: " + String(qty);
-		item.appendChild(meta);
+		var orderIds = getOrderIdsForEvent(event);
+		var hasMultipleOrders = toArray(event.orders).length > 1 || orderIds.length > 1;
 
-		return item;
+		if (!orderIds.length) {
+			console.warn("[ORAS Member Hub] Print unavailable: missing order_id for event_id " + String(eventId) + ".", event);
+			actionsNode.appendChild(makeMutedText("Print unavailable"));
+			return null;
+		}
+
+		if (!hasMultipleOrders) {
+			var singleOrderId = orderIds[0];
+			var singlePrintUrl = buildPrintUrl(singleOrderId, eventId);
+			var singleLink = makeActionLink("Print Tickets", singlePrintUrl);
+			singleLink.setAttribute("aria-label", "Print tickets for " + eventTitleText + ", order " + String(singleOrderId));
+			singleLink.dataset.example = "/oras-ticket/print?order_id=123&event_id=22";
+			actionsNode.appendChild(singleLink);
+
+			return null;
+		}
+
+		actionsNode.appendChild(makeMutedText("Print Tickets (choose order)"));
+
+		var orderList = document.createElement("ul");
+		orderList.className = "oras-my-tickets__orders oras-my-tickets__orders--print";
+
+		orderIds.forEach(function (orderId, index) {
+			var item = document.createElement("li");
+			item.className = "oras-my-tickets__order oras-my-tickets__order--print";
+
+			var printUrl = buildPrintUrl(orderId, eventId);
+			var orderQty = getOrderQty(event, orderId);
+			var qtyLabel = orderQty > 0 ? " (" + String(orderQty) + " tickets)" : "";
+			var link = makeActionLink("Order #" + String(orderId) + " \u2014 Print" + qtyLabel, printUrl);
+			link.setAttribute("aria-label", "Print tickets for " + eventTitleText + ", order " + String(orderId));
+
+			if (index === 0) {
+				link.dataset.example = "/oras-ticket/print?order_id=123&event_id=22";
+			}
+
+			item.appendChild(link);
+			orderList.appendChild(item);
+		});
+
+		return orderList;
+	}
+
+	function getEventId(event) {
+		var raw = firstDefined([
+			event.event_id,
+			event.id,
+			event.event && event.event.id,
+			event.event && event.event.event_id
+		], null);
+
+		if (raw === null || raw === undefined || raw === "") {
+			return "";
+		}
+
+		return String(raw).trim();
+	}
+
+	function getOrderIdsForEvent(event) {
+		var ids = [];
+		var seen = {};
+		var pushId = function (value) {
+			if (value === null || value === undefined || value === "") {
+				return;
+			}
+
+			var normalized = String(value).trim();
+			if (!normalized || seen[normalized]) {
+				return;
+			}
+
+			seen[normalized] = true;
+			ids.push(normalized);
+		};
+
+		pushId(event.order_id);
+		pushId(event.latest_order_id);
+
+		toArray(event.order_ids).forEach(pushId);
+
+		toArray(event.orders).forEach(function (order) {
+			if (!order || typeof order !== "object") {
+				return;
+			}
+
+			pushId(order.order_id);
+			pushId(order.id);
+		});
+
+		return ids;
+	}
+
+	function getOrderQty(event, orderId) {
+		var orders = toArray(event.orders);
+
+		for (var i = 0; i < orders.length; i += 1) {
+			var order = orders[i];
+			if (!order || typeof order !== "object") {
+				continue;
+			}
+
+			var candidate = firstDefined([order.order_id, order.id], "");
+			if (String(candidate).trim() !== String(orderId)) {
+				continue;
+			}
+
+			return toNumber(firstDefined([order.qty, order.quantity], 0), 0);
+		}
+
+		return 0;
+	}
+
+	function buildPrintUrl(orderId, eventId) {
+		// Example: /oras-ticket/print?order_id=123&event_id=22
+		var url = new URL(printBase, window.location.origin);
+		url.searchParams.set("order_id", String(orderId));
+		url.searchParams.set("event_id", String(eventId));
+
+		return url.toString();
+	}
+
+	function makeActionLink(label, url) {
+		var link = document.createElement("a");
+		link.className = "oras-my-tickets__action";
+		link.href = url;
+		link.textContent = label;
+		return link;
+	}
+
+	function makeMutedText(text) {
+		var span = document.createElement("span");
+		span.className = "oras-my-tickets__action is-disabled";
+		span.textContent = text;
+		return span;
 	}
 
 	function getPayload(response) {
@@ -245,6 +401,20 @@
 		}
 
 		return text;
+	}
+
+	function normalizePrintBase(path) {
+		if (typeof path !== "string" || !path.trim()) {
+			return window.location.origin + "/oras-ticket/print";
+		}
+
+		var text = path.trim();
+
+		try {
+			return new URL(text, window.location.origin).toString();
+		} catch (error) {
+			return window.location.origin + "/oras-ticket/print";
+		}
 	}
 
 	function safeUrl(raw) {
