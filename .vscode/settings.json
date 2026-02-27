@@ -14,5 +14,9 @@
   "phpstan.command": "${workspaceFolder}/vendor/bin/phpstan",
   "intelephense.diagnostics.undefinedTypes": false,
   "psalm.enabled": false,
-  "php.suggest.basic": false
+  "php.suggest.basic": false,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "shadowgar",
+    "projectKey": "Shadowgar_ORAS-Member-Hub"
+  }
 }
