@@ -79,7 +79,9 @@ if ( ! function_exists( 'oras_member_hub_render_hub' ) ) {
 	function oras_member_hub_render_hub( array $atts = array() ) {
 		oras_member_hub_enqueue_assets();
 
-		$renew_url = function_exists( 'pmpro_url' ) ? (string) pmpro_url( 'account' ) : (string) home_url( '/membership-account/' );
+		$renew_url          = function_exists( 'pmpro_url' ) ? (string) pmpro_url( 'account' ) : (string) home_url( '/membership-account/' );
+		$board_reports_url  = 'https://oras.org/board-reports/';
+		$show_board_reports = false;
 
 		if ( ! is_user_logged_in() ) {
 			$login_url = wp_login_url( get_permalink() );
@@ -92,6 +94,28 @@ if ( ! function_exists( 'oras_member_hub_render_hub' ) ) {
 				esc_url( $login_url ),
 				esc_html__( 'Log in', 'oras-member-hub' )
 			);
+		}
+
+		$current_user_data = (array) wp_get_current_user();
+		$current_roles     = array();
+		$current_userrole  = '';
+
+		if ( isset( $current_user_data['roles'] ) && is_array( $current_user_data['roles'] ) ) {
+			$current_roles = array_map( 'strtolower', $current_user_data['roles'] );
+		}
+
+		if ( isset( $current_user_data['userrole'] ) ) {
+			$current_userrole = strtolower( trim( (string) $current_user_data['userrole'] ) );
+		} elseif ( isset( $current_user_data['user_role'] ) ) {
+			$current_userrole = strtolower( trim( (string) $current_user_data['user_role'] ) );
+		}
+
+		if (
+			in_array( 'administrator', $current_roles, true ) ||
+			in_array( 'board', $current_roles, true ) ||
+			in_array( $current_userrole, array( 'administrator', 'board' ), true )
+		) {
+			$show_board_reports = true;
 		}
 
 		$main_modules = apply_filters(
@@ -127,6 +151,9 @@ if ( ! function_exists( 'oras_member_hub_render_hub' ) ) {
 				<a href="#oras-hub-module-upcoming-events"><?php echo esc_html__( 'Events', 'oras-member-hub' ); ?></a>
 				<a href="<?php echo esc_url( $renew_url ); ?>"><?php echo esc_html__( 'Renew', 'oras-member-hub' ); ?></a>
 				<a href="#oras-hub-module-resources"><?php echo esc_html__( 'Toolkit', 'oras-member-hub' ); ?></a>
+				<?php if ( $show_board_reports ) : ?>
+					<a href="<?php echo esc_url( $board_reports_url ); ?>"><?php echo esc_html__( 'Board Reports', 'oras-member-hub' ); ?></a>
+				<?php endif; ?>
 			</nav>
 			<div class="oras-hub__grid oras-member-hub__layout">
 				<main class="oras-hub__main oras-member-hub__main" role="main">
