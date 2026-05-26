@@ -45,7 +45,7 @@ if ( ! function_exists( 'oras_member_hub_enqueue_assets' ) ) {
 	 * @return void
 	 */
 	function oras_member_hub_enqueue_assets() {
-		$style_handle = 'oras-member-hub';
+		$style_handle  = 'oras-member-hub';
 		$script_handle = 'oras-member-hub';
 
 		if ( ! wp_style_is( $style_handle, 'enqueued' ) ) {
