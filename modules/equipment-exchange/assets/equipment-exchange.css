@@ -4,7 +4,7 @@
 .oras-equipment-my-listings,
 .oras-equipment-preview {
 	--eq-text: #111827;
-	--eq-muted: #374151;
+	--eq-muted: #4b5563;
 	--eq-panel-bg: #ffffff;
 	--eq-panel-border: #d1d5db;
 	--eq-input-bg: #ffffff;
@@ -13,8 +13,10 @@
 	--eq-button-text: #ffffff;
 	--eq-disclaimer-bg: #e5edf8;
 	--eq-disclaimer-border: #c4d3ea;
+	--eq-shadow: 0 6px 22px rgba(2, 8, 20, 0.08);
 
-	margin-top: 56px;
+	margin-top: 0;
+	padding-top: 56px;
 	color: var(--eq-text);
 }
 
@@ -44,15 +46,16 @@ body.dark .oras-equipment-preview,
 html[data-theme='dark'] .oras-equipment-preview,
 body[data-theme='dark'] .oras-equipment-preview {
 	--eq-text: #f8fafc;
-	--eq-muted: #cbd5e1;
-	--eq-panel-bg: rgba(3, 7, 18, 0.82);
+	--eq-muted: #d2d9e6;
+	--eq-panel-bg: rgba(3, 7, 18, 0.88);
 	--eq-panel-border: rgba(148, 163, 184, 0.36);
-	--eq-input-bg: rgba(2, 6, 23, 0.9);
+	--eq-input-bg: rgba(2, 6, 23, 0.92);
 	--eq-input-border: rgba(148, 163, 184, 0.62);
-	--eq-button-bg: #2563eb;
+	--eq-button-bg: #3b82f6;
 	--eq-button-text: #ffffff;
 	--eq-disclaimer-bg: rgba(30, 41, 59, 0.78);
 	--eq-disclaimer-border: rgba(100, 116, 139, 0.55);
+	--eq-shadow: 0 10px 28px rgba(2, 6, 23, 0.45);
 }
 
 .oras-equipment-grid-page,
@@ -62,36 +65,48 @@ body[data-theme='dark'] .oras-equipment-preview {
 .oras-equipment-preview {
 	font-size: 16px;
 	line-height: 1.45;
-	max-width: 1240px;
-	padding-left: 14px;
-	padding-right: 14px;
+	max-width: 1320px;
+	padding-left: 16px;
+	padding-right: 16px;
 }
 
+.oras-equipment-grid-page,
+.oras-equipment-grid-page h1,
 .oras-equipment-grid-page h2,
-.oras-equipment-submit h2,
-.oras-equipment-single h2,
-.oras-equipment-my-listings h2,
 .oras-equipment-grid-page h3,
-.oras-equipment-submit h3,
-.oras-equipment-single h3,
-.oras-equipment-my-listings h3,
+.oras-equipment-grid-page h4,
 .oras-equipment-grid-page p,
-.oras-equipment-submit p,
-.oras-equipment-single p,
-.oras-equipment-my-listings p,
 .oras-equipment-grid-page label,
-.oras-equipment-submit label,
-.oras-equipment-single label,
-.oras-equipment-my-listings label,
 .oras-equipment-grid-page li,
-.oras-equipment-submit li,
-.oras-equipment-single li,
-.oras-equipment-my-listings li,
 .oras-equipment-grid-page a,
+.oras-equipment-submit,
+.oras-equipment-submit h1,
+.oras-equipment-submit h2,
+.oras-equipment-submit h3,
+.oras-equipment-submit h4,
+.oras-equipment-submit p,
+.oras-equipment-submit label,
+.oras-equipment-submit li,
 .oras-equipment-submit a,
+.oras-equipment-single,
+.oras-equipment-single h1,
+.oras-equipment-single h2,
+.oras-equipment-single h3,
+.oras-equipment-single h4,
+.oras-equipment-single p,
+.oras-equipment-single label,
+.oras-equipment-single li,
 .oras-equipment-single a,
+.oras-equipment-my-listings,
+.oras-equipment-my-listings h1,
+.oras-equipment-my-listings h2,
+.oras-equipment-my-listings h3,
+.oras-equipment-my-listings h4,
+.oras-equipment-my-listings p,
+.oras-equipment-my-listings label,
+.oras-equipment-my-listings li,
 .oras-equipment-my-listings a {
-	color: var(--eq-text);
+	color: var(--eq-text) !important;
 }
 
 .oras-equipment-submit h2,
@@ -109,12 +124,13 @@ body[data-theme='dark'] .oras-equipment-preview {
 	border-radius: 12px;
 	padding: 16px;
 	margin-bottom: 16px;
+	box-shadow: var(--eq-shadow);
 }
 
 .oras-equipment-form__grid {
 	display: grid;
-	grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr);
-	gap: 16px;
+	grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
+	gap: 20px;
 	align-items: start;
 }
 
@@ -122,7 +138,8 @@ body[data-theme='dark'] .oras-equipment-preview {
 	background: var(--eq-panel-bg);
 	border: 1px solid var(--eq-panel-border);
 	border-radius: 12px;
-	padding: 16px;
+	padding: 18px;
+	box-shadow: var(--eq-shadow);
 }
 
 .oras-equipment-form__panel h3 {
@@ -134,12 +151,12 @@ body[data-theme='dark'] .oras-equipment-preview {
 
 .oras-equipment-form__panel p {
 	margin-top: 0;
-	margin-bottom: 12px;
+	margin-bottom: 14px;
 }
 
 .oras-equipment-form__panel--side {
 	position: sticky;
-	top: 90px;
+	top: 96px;
 }
 
 .oras-equipment-grid-page .button,
@@ -147,7 +164,7 @@ body[data-theme='dark'] .oras-equipment-preview {
 .oras-equipment-single .button,
 .oras-equipment-my-listings .button {
 	background: var(--eq-button-bg);
-	color: var(--eq-button-text);
+	color: var(--eq-button-text) !important;
 	border: 1px solid transparent;
 	border-radius: 6px;
 }
@@ -158,18 +175,19 @@ body[data-theme='dark'] .oras-equipment-preview {
 
 .oras-equipment-marketplace-layout {
 	display: grid;
-	grid-template-columns: 280px minmax(0, 1fr);
-	gap: 20px;
+	grid-template-columns: 310px minmax(0, 1fr);
+	gap: 22px;
 	align-items: start;
 }
 
 .oras-equipment-filter-sidebar {
 	background: var(--eq-panel-bg);
 	border: 1px solid var(--eq-panel-border);
-	border-radius: 10px;
-	padding: 14px;
+	border-radius: 12px;
+	padding: 16px;
 	position: sticky;
-	top: 90px;
+	top: 96px;
+	box-shadow: var(--eq-shadow);
 }
 
 .oras-equipment-filter-sidebar h3 {
@@ -192,7 +210,7 @@ body[data-theme='dark'] .oras-equipment-preview {
 	gap: 6px;
 	font-size: 0.85rem;
 	font-weight: 600;
-	color: var(--eq-muted);
+	color: var(--eq-muted) !important;
 }
 
 .oras-equipment-grid-filters input,
@@ -205,11 +223,11 @@ body[data-theme='dark'] .oras-equipment-preview {
 .oras-equipment-my-listings textarea,
 .oras-equipment-contact-form input,
 .oras-equipment-contact-form textarea {
-	background: var(--eq-input-bg);
-	color: var(--eq-text);
-	border: 1px solid var(--eq-input-border);
+	background: var(--eq-input-bg) !important;
+	color: var(--eq-text) !important;
+	border: 1px solid var(--eq-input-border) !important;
 	border-radius: 6px;
-	padding: 8px 10px;
+	padding: 10px 12px;
 	font-size: 0.98rem;
 }
 
@@ -301,7 +319,7 @@ body[data-theme='dark'] .oras-equipment-preview {
 	border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 980px) {
 	.oras-equipment-marketplace-layout {
 		grid-template-columns: 1fr;
 	}

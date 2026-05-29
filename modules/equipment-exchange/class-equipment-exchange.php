@@ -52,18 +52,21 @@ final class ORAS_MH_Equipment_Exchange {
 	 * @return void
 	 */
 	public static function register_assets() {
+		$css_file = ORAS_MEMBER_HUB_PATH . 'modules/equipment-exchange/assets/equipment-exchange.css';
+		$js_file  = ORAS_MEMBER_HUB_PATH . 'modules/equipment-exchange/assets/equipment-exchange.js';
+
 		wp_register_style(
 			'oras-equipment-exchange',
 			ORAS_MEMBER_HUB_URL . 'modules/equipment-exchange/assets/equipment-exchange.css',
 			array(),
-			ORAS_MEMBER_HUB_VERSION
+			file_exists( $css_file ) ? (string) filemtime( $css_file ) : ORAS_MEMBER_HUB_VERSION
 		);
 
 		wp_register_script(
 			'oras-equipment-exchange',
 			ORAS_MEMBER_HUB_URL . 'modules/equipment-exchange/assets/equipment-exchange.js',
 			array(),
-			ORAS_MEMBER_HUB_VERSION,
+			file_exists( $js_file ) ? (string) filemtime( $js_file ) : ORAS_MEMBER_HUB_VERSION,
 			true
 		);
 	}
