@@ -15,6 +15,7 @@
     "lint:php": "find . -type f -name '*.php' -not -path './vendor/*' -not -path './.wp-env/*' -print0 | xargs -0 -n1 php -l",
     "lint:phpstan": "phpstan analyse --memory-limit=1G",
     "lint:phpcs": "phpcs --warning-severity=0",
+    "checks:equipment": "echo 'Run via wp-env: npx @wordpress/env run cli wp eval-file scripts/equipment-exchange-checks.php'",
     "quality": [
       "@lint:php",
       "@lint:phpstan",

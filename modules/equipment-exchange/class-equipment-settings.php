@@ -24,6 +24,7 @@ final class ORAS_MH_Equipment_Settings {
 	public static function register() {
 		add_action( 'admin_menu', array( __CLASS__, 'register_menu' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
+		add_action( 'admin_post_oras_mh_equipment_setup_pages', array( __CLASS__, 'handle_setup_pages' ) );
 	}
 
 	/**
@@ -150,8 +151,144 @@ final class ORAS_MH_Equipment_Settings {
 				</table>
 				<?php submit_button(); ?>
 			</form>
+			<hr />
+			<h2><?php esc_html_e( 'Quick Setup', 'oras-member-hub' ); ?></h2>
+			<p><?php esc_html_e( 'Create or update Equipment Exchange pages and shortcode content, then sync URL settings automatically.', 'oras-member-hub' ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( 'oras_mh_equipment_setup_pages' ); ?>
+				<input type="hidden" name="action" value="oras_mh_equipment_setup_pages" />
+				<?php submit_button( __( 'Create/Update Equipment Exchange Pages', 'oras-member-hub' ), 'secondary', 'submit', false ); ?>
+			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Create or update shortcode pages and sync settings URLs.
+	 *
+	 * @return void
+	 */
+	public static function handle_setup_pages() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to do this.', 'oras-member-hub' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( 'oras_mh_equipment_setup_pages' );
+
+		$pages = array(
+			'grid' => array(
+				'title'   => 'Equipment Exchange',
+				'slug'    => 'members-hub/equipment-exchange',
+				'content' => '[oras_equipment_exchange_grid]',
+			),
+			'submit' => array(
+				'title'   => 'List Equipment',
+				'slug'    => 'members-hub/equipment-exchange/list-equipment',
+				'content' => '[oras_equipment_exchange_submit]',
+			),
+			'my_listings' => array(
+				'title'   => 'My Equipment Listings',
+				'slug'    => 'members-hub/equipment-exchange/my-listings',
+				'content' => '[oras_equipment_exchange_my_listings]',
+			),
+			'single' => array(
+				'title'   => 'Equipment Listing',
+				'slug'    => 'members-hub/equipment-exchange/listing',
+				'content' => '[oras_equipment_exchange_single]',
+			),
+		);
+
+		$urls = array();
+
+		foreach ( $pages as $key => $page ) {
+			$existing = get_page_by_path( $page['slug'] );
+			$data     = array(
+				'post_title'   => $page['title'],
+				'post_name'    => basename( $page['slug'] ),
+				'post_content' => $page['content'],
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+			);
+
+			if ( $existing instanceof WP_Post ) {
+				$data['ID'] = $existing->ID;
+				$page_id    = wp_update_post( $data, true );
+			} else {
+				$data['post_parent'] = self::ensure_page_parent_chain( $page['slug'] );
+				$page_id             = wp_insert_post( $data, true );
+			}
+
+			if ( is_wp_error( $page_id ) ) {
+				continue;
+			}
+
+			$urls[ $key ] = get_permalink( (int) $page_id );
+		}
+
+		$settings = self::get();
+		if ( ! empty( $urls['grid'] ) ) {
+			$settings['grid_page_url'] = $urls['grid'];
+		}
+		if ( ! empty( $urls['submit'] ) ) {
+			$settings['submit_page_url'] = $urls['submit'];
+		}
+		if ( ! empty( $urls['my_listings'] ) ) {
+			$settings['my_listings_page_url'] = $urls['my_listings'];
+		}
+		if ( ! empty( $urls['single'] ) ) {
+			$settings['single_listing_page_url'] = $urls['single'];
+		}
+
+		update_option( self::OPTION_KEY, self::sanitize( $settings ) );
+
+		wp_safe_redirect( admin_url( 'options-general.php?page=oras-mh-equipment-exchange&setup=1' ) );
+		exit;
+	}
+
+	/**
+	 * Ensure hierarchical page parent chain exists for nested slugs.
+	 *
+	 * @param string $path Full path.
+	 * @return int
+	 */
+	private static function ensure_page_parent_chain( $path ) {
+		$parts = array_values( array_filter( explode( '/', trim( (string) $path, '/' ) ) ) );
+		if ( count( $parts ) <= 1 ) {
+			return 0;
+		}
+
+		$parent_id    = 0;
+		$current_path = '';
+
+		for ( $i = 0; $i < count( $parts ) - 1; $i++ ) {
+			$current_path = '' === $current_path ? $parts[ $i ] : $current_path . '/' . $parts[ $i ];
+			$existing     = get_page_by_path( $current_path );
+
+			if ( $existing instanceof WP_Post ) {
+				$parent_id = (int) $existing->ID;
+				continue;
+			}
+
+			$page_id = wp_insert_post(
+				array(
+					'post_title'   => ucwords( str_replace( '-', ' ', $parts[ $i ] ) ),
+					'post_name'    => $parts[ $i ],
+					'post_type'    => 'page',
+					'post_status'  => 'publish',
+					'post_parent'  => $parent_id,
+					'post_content' => '',
+				),
+				true
+			);
+
+			if ( is_wp_error( $page_id ) ) {
+				return $parent_id;
+			}
+
+			$parent_id = (int) $page_id;
+		}
+
+		return $parent_id;
 	}
 
 	/**
