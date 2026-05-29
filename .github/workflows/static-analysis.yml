@@ -36,3 +36,26 @@ jobs:
 
       - name: PHPCS
         run: composer lint:phpcs
+
+  equipment-checks:
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('.wp-env.json') != '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Start wp-env
+        run: npx @wordpress/env start
+
+      - name: Run Equipment Exchange deterministic checks
+        run: npx @wordpress/env run cli wp eval-file scripts/equipment-exchange-checks.php
+
+      - name: Stop wp-env
+        if: always()
+        run: npx @wordpress/env stop
