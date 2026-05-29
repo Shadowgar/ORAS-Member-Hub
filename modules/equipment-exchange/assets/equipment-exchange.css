@@ -319,6 +319,163 @@ body[data-theme='dark'] .oras-equipment-preview {
 	border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+.oras-equipment-my-listings__stack {
+	display: grid;
+	gap: 16px;
+}
+
+.oras-equipment-my-listing-card {
+	display: grid;
+	grid-template-columns: 180px minmax(0, 1fr);
+	gap: 16px;
+	background: var(--eq-panel-bg);
+	border: 1px solid var(--eq-panel-border);
+	border-radius: 12px;
+	padding: 16px;
+	box-shadow: var(--eq-shadow);
+}
+
+.oras-equipment-my-listing-card__media img {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	border-radius: 8px;
+	border: 1px solid var(--eq-panel-border);
+}
+
+.oras-equipment-my-listing-card__header h3 {
+	margin: 0;
+	font-size: 1.6rem;
+	line-height: 1.2;
+}
+
+.oras-equipment-my-listing-card__badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+.oras-equipment-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	border: 1px solid transparent;
+}
+
+.oras-equipment-badge--type {
+	background: rgba(59, 130, 246, 0.18);
+	border-color: rgba(59, 130, 246, 0.5);
+}
+
+.oras-equipment-badge--status {
+	background: rgba(34, 197, 94, 0.16);
+	border-color: rgba(34, 197, 94, 0.5);
+}
+
+.oras-equipment-my-listing-card__meta {
+	margin: 10px 0 0;
+	font-size: 0.92rem;
+	color: var(--eq-muted) !important;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.oras-equipment-my-listing-card__actions {
+	display: grid;
+	gap: 10px;
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px solid var(--eq-panel-border);
+}
+
+.oras-equipment-inline-form {
+	margin: 0;
+}
+
+.oras-equipment-status-update-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.oras-equipment-status-update-row label {
+	margin: 0;
+	flex: 1 1 220px;
+}
+
+.oras-equipment-status-update-row select {
+	width: 100%;
+}
+
+.oras-equipment-my-listing-card__quick-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.oras-equipment-button--danger {
+	background: #dc2626 !important;
+	border-color: #b91c1c !important;
+}
+
+.oras-equipment-my-listing-card__edit {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid var(--eq-panel-border);
+}
+
+.oras-equipment-my-listing-card__edit summary {
+	cursor: pointer;
+	font-weight: 700;
+	color: var(--eq-text) !important;
+	list-style: none;
+}
+
+.oras-equipment-my-listing-card__edit summary::-webkit-details-marker {
+	display: none;
+}
+
+.oras-equipment-my-listing-card__edit summary::before {
+	content: '+';
+	display: inline-block;
+	margin-right: 8px;
+	font-weight: 700;
+}
+
+.oras-equipment-my-listing-card__edit[open] summary::before {
+	content: '-';
+}
+
+.oras-equipment-edit-form {
+	margin-top: 14px;
+	padding: 14px;
+	border-radius: 10px;
+	background: var(--eq-input-bg);
+	border: 1px solid var(--eq-input-border);
+}
+
+.oras-equipment-edit-form__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.oras-equipment-edit-form__grid p {
+	margin: 0;
+}
+
+.oras-equipment-edit-form__full {
+	grid-column: 1 / -1;
+}
+
 @media (max-width: 980px) {
 	.oras-equipment-marketplace-layout {
 		grid-template-columns: 1fr;
@@ -338,6 +495,18 @@ body[data-theme='dark'] .oras-equipment-preview {
 
 	.oras-equipment-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.oras-equipment-my-listing-card {
+		grid-template-columns: 1fr;
+	}
+
+	.oras-equipment-my-listing-card__media {
+		max-width: 360px;
+	}
+
+	.oras-equipment-edit-form__grid {
+		grid-template-columns: 1fr;
 	}
 }
 
