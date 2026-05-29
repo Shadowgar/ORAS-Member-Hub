@@ -39,23 +39,34 @@ jobs:
 
   equipment-checks:
     runs-on: ubuntu-latest
-    if: ${{ hashFiles('.wp-env.json') != '' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Detect wp-env config
+        id: wp_env
+        run: |
+          if [ -f .wp-env.json ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node
+        if: steps.wp_env.outputs.enabled == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Start wp-env
+        if: steps.wp_env.outputs.enabled == 'true'
         run: npx @wordpress/env start
 
       - name: Run Equipment Exchange deterministic checks
+        if: steps.wp_env.outputs.enabled == 'true'
         run: npx @wordpress/env run cli wp eval-file scripts/equipment-exchange-checks.php
 
       - name: Stop wp-env
-        if: always()
+        if: always() && steps.wp_env.outputs.enabled == 'true'
         run: npx @wordpress/env stop
