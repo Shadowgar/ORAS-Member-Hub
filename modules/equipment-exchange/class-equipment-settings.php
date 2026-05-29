@@ -77,6 +77,9 @@ final class ORAS_MH_Equipment_Settings {
 			'submit_page_url'           => esc_url_raw( (string) ( $input['submit_page_url'] ?? '' ) ),
 			'my_listings_page_url'      => esc_url_raw( (string) ( $input['my_listings_page_url'] ?? '' ) ),
 			'single_listing_page_url'   => esc_url_raw( (string) ( $input['single_listing_page_url'] ?? '' ) ),
+			'turnstile_enabled'         => ! empty( $input['turnstile_enabled'] ) ? 1 : 0,
+			'turnstile_site_key'        => sanitize_text_field( (string) ( $input['turnstile_site_key'] ?? '' ) ),
+			'turnstile_secret_key'      => sanitize_text_field( (string) ( $input['turnstile_secret_key'] ?? '' ) ),
 		);
 	}
 
@@ -100,6 +103,9 @@ final class ORAS_MH_Equipment_Settings {
 			'submit_page_url'          => home_url( '/members-hub/equipment-exchange/list-equipment/' ),
 			'my_listings_page_url'     => home_url( '/members-hub/equipment-exchange/my-listings/' ),
 			'single_listing_page_url'  => home_url( '/members-hub/equipment-exchange/listing/' ),
+			'turnstile_enabled'        => 0,
+			'turnstile_site_key'       => '',
+			'turnstile_secret_key'     => '',
 		);
 	}
 
@@ -120,6 +126,53 @@ final class ORAS_MH_Equipment_Settings {
 	public static function is_enabled() {
 		$settings = self::get();
 		return ! empty( $settings['enabled'] );
+	}
+
+	/**
+	 * Is Cloudflare Turnstile enabled and configured.
+	 *
+	 * @return bool
+	 */
+	public static function is_turnstile_enabled() {
+		$settings = self::get();
+		return ! empty( $settings['turnstile_enabled'] ) && ! empty( $settings['turnstile_site_key'] ) && ! empty( $settings['turnstile_secret_key'] );
+	}
+
+	/**
+	 * Verify Turnstile token with Cloudflare.
+	 *
+	 * @param string $token Submitted token.
+	 * @return bool
+	 */
+	public static function verify_turnstile_token( $token ) {
+		if ( ! self::is_turnstile_enabled() ) {
+			return true;
+		}
+
+		$settings = self::get();
+		$token    = trim( (string) $token );
+		if ( '' === $token ) {
+			return false;
+		}
+
+		$response = wp_remote_post(
+			'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+			array(
+				'timeout' => 10,
+				'body'    => array(
+					'secret'   => (string) $settings['turnstile_secret_key'],
+					'response' => $token,
+					'remoteip' => sanitize_text_field( (string) ( $_SERVER['REMOTE_ADDR'] ?? '' ) ),
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		$payload = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+		return is_array( $payload ) && ! empty( $payload['success'] );
 	}
 
 	/**
@@ -146,6 +199,9 @@ final class ORAS_MH_Equipment_Settings {
 					<tr><th scope="row"><?php esc_html_e( 'Submit page URL', 'oras-member-hub' ); ?></th><td><input class="regular-text" type="url" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[submit_page_url]" value="<?php echo esc_attr( (string) $settings['submit_page_url'] ); ?>" /></td></tr>
 					<tr><th scope="row"><?php esc_html_e( 'My Listings page URL', 'oras-member-hub' ); ?></th><td><input class="regular-text" type="url" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[my_listings_page_url]" value="<?php echo esc_attr( (string) $settings['my_listings_page_url'] ); ?>" /></td></tr>
 					<tr><th scope="row"><?php esc_html_e( 'Single Listing page URL', 'oras-member-hub' ); ?></th><td><input class="regular-text" type="url" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[single_listing_page_url]" value="<?php echo esc_attr( (string) $settings['single_listing_page_url'] ); ?>" /></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Enable Cloudflare Turnstile', 'oras-member-hub' ); ?></th><td><label><input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[turnstile_enabled]" value="1" <?php checked( ! empty( $settings['turnstile_enabled'] ) ); ?> /> <?php esc_html_e( 'Protect submission forms with Turnstile', 'oras-member-hub' ); ?></label></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Turnstile site key', 'oras-member-hub' ); ?></th><td><input class="regular-text" type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[turnstile_site_key]" value="<?php echo esc_attr( (string) $settings['turnstile_site_key'] ); ?>" /></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Turnstile secret key', 'oras-member-hub' ); ?></th><td><input class="regular-text" type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[turnstile_secret_key]" value="<?php echo esc_attr( (string) $settings['turnstile_secret_key'] ); ?>" /></td></tr>
 					<tr><th scope="row"><?php esc_html_e( 'Disclaimer text', 'oras-member-hub' ); ?></th><td><textarea class="large-text" rows="4" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[disclaimer_text]"><?php echo esc_textarea( (string) $settings['disclaimer_text'] ); ?></textarea></td></tr>
 					<tr><th scope="row"><?php esc_html_e( 'Rules text', 'oras-member-hub' ); ?></th><td><textarea class="large-text" rows="4" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rules_text]"><?php echo esc_textarea( (string) $settings['rules_text'] ); ?></textarea></td></tr>
 				</table>

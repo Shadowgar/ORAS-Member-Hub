@@ -73,6 +73,7 @@ final class ORAS_MH_Equipment_Forms {
 	 */
 	private static function submit_listing() {
 		check_admin_referer( 'oras_equipment_submit', 'oras_equipment_nonce' );
+		self::assert_turnstile_or_fail();
 		$result = self::build_post_data_from_request( 0 );
 		if ( is_wp_error( $result ) ) {
 			self::redirect_with_notice( 'error', __( 'Unable to submit listing. Please verify required fields.', 'oras-member-hub' ) );
@@ -105,6 +106,7 @@ final class ORAS_MH_Equipment_Forms {
 	 */
 	private static function edit_listing() {
 		check_admin_referer( 'oras_equipment_edit', 'oras_equipment_nonce' );
+		self::assert_turnstile_or_fail();
 		$post_id = isset( $_POST['listing_id'] ) ? (int) $_POST['listing_id'] : 0;
 		if ( $post_id <= 0 || ! ORAS_MH_Equipment_Permissions::can_edit_listing( $post_id, get_current_user_id() ) ) {
 			self::redirect_with_notice( 'error', __( 'You cannot edit this listing.', 'oras-member-hub' ) );
@@ -190,6 +192,18 @@ final class ORAS_MH_Equipment_Forms {
 		}
 		wp_trash_post( $post_id );
 		self::redirect_with_notice( 'success', __( 'Listing moved to trash.', 'oras-member-hub' ) );
+	}
+
+	/**
+	 * Validate Turnstile if enabled.
+	 *
+	 * @return void
+	 */
+	private static function assert_turnstile_or_fail() {
+		$token = sanitize_text_field( (string) wp_unslash( $_POST['cf-turnstile-response'] ?? '' ) );
+		if ( ORAS_MH_Equipment_Settings::is_turnstile_enabled() && ! ORAS_MH_Equipment_Settings::verify_turnstile_token( $token ) ) {
+			self::redirect_with_notice( 'error', __( 'Spam protection check failed. Please try again.', 'oras-member-hub' ) );
+		}
 	}
 
 	/**

@@ -31,6 +31,11 @@ final class ORAS_MH_Equipment_Contact {
 	public static function handle_submission() {
 		check_admin_referer( 'oras_equipment_contact', 'oras_equipment_nonce' );
 
+		$token = sanitize_text_field( (string) wp_unslash( $_POST['cf-turnstile-response'] ?? '' ) );
+		if ( ORAS_MH_Equipment_Settings::is_turnstile_enabled() && ! ORAS_MH_Equipment_Settings::verify_turnstile_token( $token ) ) {
+			self::redirect_with_notice( 'error', __( 'Spam protection check failed. Please try again.', 'oras-member-hub' ) );
+		}
+
 		if ( ! ORAS_MH_Equipment_Permissions::current_user_has_access() ) {
 			self::redirect_with_notice( 'error', __( 'Access denied.', 'oras-member-hub' ) );
 		}

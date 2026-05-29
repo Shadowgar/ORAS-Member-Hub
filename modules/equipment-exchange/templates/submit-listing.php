@@ -48,6 +48,7 @@
 				<p><label><?php esc_html_e( 'Contact preference', 'oras-member-hub' ); ?><br /><select name="contact_preference"><option value="contact_form_only"><?php esc_html_e( 'Contact form only', 'oras-member-hub' ); ?></option></select></label></p>
 				<p class="oras-equipment-disclaimer"><?php echo esc_html( (string) $settings['disclaimer_text'] ); ?></p>
 				<p><label><input type="checkbox" name="listing_agreement" value="1" required /> <?php esc_html_e( 'I understand that this is a private member-to-member transaction and that ORAS is not responsible for payment, pickup, delivery, shipping, item condition, or disputes.', 'oras-member-hub' ); ?></label></p>
+				<?php echo wp_kses_post( ORAS_MH_Equipment_Shortcodes::turnstile_widget_html() ); ?>
 				<p><button class="button" type="submit"><?php esc_html_e( 'Submit Listing For Review', 'oras-member-hub' ); ?></button></p>
 			</aside>
 		</div>

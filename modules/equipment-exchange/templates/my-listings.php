@@ -114,6 +114,7 @@
 								<p><label><?php esc_html_e( 'Add/replace photos', 'oras-member-hub' ); ?><br /><input type="file" name="listing_photos[]" accept="image/jpeg,image/png,image/webp" multiple /></label></p>
 								<p><label><?php esc_html_e( 'Contact preference', 'oras-member-hub' ); ?><br /><select name="contact_preference"><option value="contact_form_only" <?php selected( (string) get_post_meta( $listing->ID, ORAS_MH_Equipment_Fields::META_CONTACT_PREFERENCE, true ), 'contact_form_only' ); ?>><?php esc_html_e( 'Contact form only', 'oras-member-hub' ); ?></option></select></label></p>
 							</div>
+							<?php echo wp_kses_post( ORAS_MH_Equipment_Shortcodes::turnstile_widget_html() ); ?>
 							<p><button class="button" type="submit"><?php esc_html_e( 'Save Changes', 'oras-member-hub' ); ?></button></p>
 						</form>
 					</details>

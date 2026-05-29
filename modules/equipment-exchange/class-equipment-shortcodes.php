@@ -254,6 +254,25 @@ final class ORAS_MH_Equipment_Shortcodes {
 	}
 
 	/**
+	 * Render Turnstile widget markup when configured.
+	 *
+	 * @return string
+	 */
+	public static function turnstile_widget_html() {
+		if ( ! ORAS_MH_Equipment_Settings::is_turnstile_enabled() ) {
+			return '';
+		}
+
+		$settings = ORAS_MH_Equipment_Settings::get();
+		$site_key = (string) $settings['turnstile_site_key'];
+		if ( '' === $site_key ) {
+			return '';
+		}
+
+		return '<div class="oras-equipment-turnstile"><div class="cf-turnstile" data-sitekey="' . esc_attr( $site_key ) . '"></div></div>';
+	}
+
+	/**
 	 * Format price display.
 	 *
 	 * @param int $post_id Listing ID.
@@ -425,6 +444,16 @@ final class ORAS_MH_Equipment_Shortcodes {
 	private static function enqueue_assets() {
 		wp_enqueue_style( 'oras-equipment-exchange' );
 		wp_enqueue_script( 'oras-equipment-exchange' );
+
+		if ( ORAS_MH_Equipment_Settings::is_turnstile_enabled() ) {
+			wp_enqueue_script(
+				'cloudflare-turnstile',
+				'https://challenges.cloudflare.com/turnstile/v0/api.js',
+				array(),
+				null,
+				true
+			);
+		}
 	}
 
 	/**

@@ -13,5 +13,6 @@ $member_user = wp_get_current_user();
 	<p><label><?php esc_html_e( 'Name', 'oras-member-hub' ); ?><br /><input type="text" name="contact_name" value="<?php echo esc_attr( (string) $member_user->display_name ); ?>" required /></label></p>
 	<p><label><?php esc_html_e( 'Email', 'oras-member-hub' ); ?><br /><input type="email" name="contact_email" value="<?php echo esc_attr( (string) $member_user->user_email ); ?>" required /></label></p>
 	<p><label><?php esc_html_e( 'Message', 'oras-member-hub' ); ?><br /><textarea name="contact_message" rows="5" required></textarea></label></p>
+	<?php echo wp_kses_post( ORAS_MH_Equipment_Shortcodes::turnstile_widget_html() ); ?>
 	<p><button class="button" type="submit"><?php esc_html_e( 'Send Message', 'oras-member-hub' ); ?></button></p>
 </form>
