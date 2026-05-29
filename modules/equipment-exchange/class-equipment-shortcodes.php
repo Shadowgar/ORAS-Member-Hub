@@ -39,6 +39,43 @@ final class ORAS_MH_Equipment_Shortcodes {
 	}
 
 	/**
+	 * Render sidebar marketplace links module.
+	 *
+	 * @return string
+	 */
+	public static function render_sidebar_marketplace_module() {
+		if ( ! ORAS_MH_Equipment_Permissions::current_user_has_access() ) {
+			return '';
+		}
+
+		$links = array(
+			array(
+				'label' => __( 'Marketplace Page', 'oras-member-hub' ),
+				'url'   => ORAS_MH_Equipment_Settings::get_page_url( 'grid_page_url' ),
+			),
+			array(
+				'label' => __( 'Submit My Item For Sale', 'oras-member-hub' ),
+				'url'   => ORAS_MH_Equipment_Settings::get_page_url( 'submit_page_url' ),
+			),
+			array(
+				'label' => __( 'My Listings Page', 'oras-member-hub' ),
+				'url'   => ORAS_MH_Equipment_Settings::get_page_url( 'my_listings_page_url' ),
+			),
+		);
+
+		$content = '<ul class="oras-member-hub__account-links">';
+		foreach ( $links as $link ) {
+			if ( empty( $link['url'] ) ) {
+				continue;
+			}
+			$content .= '<li><a href="' . esc_url( (string) $link['url'] ) . '">' . esc_html( (string) $link['label'] ) . '</a></li>';
+		}
+		$content .= '</ul>';
+
+		return oras_member_hub_wrap_module( 'equipment-marketplace-links', __( 'Marketplace', 'oras-member-hub' ), $content, 'sidebar' );
+	}
+
+	/**
 	 * Preview shortcode.
 	 *
 	 * @return string

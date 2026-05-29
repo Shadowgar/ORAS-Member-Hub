@@ -40,6 +40,7 @@ final class ORAS_MH_Equipment_Exchange {
 		ORAS_MH_Equipment_Admin::register();
 
 		add_filter( 'oras_member_hub_main_modules', array( __CLASS__, 'inject_preview_module' ) );
+		add_filter( 'oras_member_hub_sidebar_modules', array( __CLASS__, 'inject_sidebar_module' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ) );
 		add_action( 'oras_mh_equipment_exchange_expire_listings', array( __CLASS__, 'expire_listings' ) );
 		add_action( 'init', array( __CLASS__, 'ensure_cron' ) );
@@ -80,6 +81,32 @@ final class ORAS_MH_Equipment_Exchange {
 
 		$modules['equipment-exchange-preview'] = array( ORAS_MH_Equipment_Shortcodes::class, 'render_preview_module' );
 		return $modules;
+	}
+
+	/**
+	 * Inject sidebar marketplace menu between membership and account blocks.
+	 *
+	 * @param array<string,string> $modules Existing modules.
+	 * @return array<string,string>
+	 */
+	public static function inject_sidebar_module( $modules ) {
+		if ( ! ORAS_MH_Equipment_Settings::is_enabled() ) {
+			return $modules;
+		}
+
+		$result = array();
+		foreach ( $modules as $key => $callback ) {
+			$result[ $key ] = $callback;
+			if ( 'membership' === $key ) {
+				$result['equipment_marketplace'] = array( ORAS_MH_Equipment_Shortcodes::class, 'render_sidebar_marketplace_module' );
+			}
+		}
+
+		if ( ! isset( $result['equipment_marketplace'] ) ) {
+			$result['equipment_marketplace'] = array( ORAS_MH_Equipment_Shortcodes::class, 'render_sidebar_marketplace_module' );
+		}
+
+		return $result;
 	}
 
 	/**
