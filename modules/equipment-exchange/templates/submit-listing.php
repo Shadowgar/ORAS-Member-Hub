@@ -9,7 +9,9 @@
  */
 ?>
 <section class="oras-equipment-submit">
-	<h2><?php esc_html_e( 'List Astronomy Equipment', 'oras-member-hub' ); ?></h2>
+	<div class="oras-equipment-page-intro">
+		<h2><?php esc_html_e( 'List Astronomy Equipment', 'oras-member-hub' ); ?></h2>
+	</div>
 	<?php echo wp_kses_post( $notice_html ); ?>
 	<div class="oras-equipment-submit__intro">
 		<p class="oras-equipment-rules"><?php echo esc_html( (string) $settings['rules_text'] ); ?></p>

@@ -8,7 +8,10 @@
  */
 ?>
 <div class="oras-equipment-preview">
-	<p class="oras-equipment-subtitle"><?php esc_html_e( 'Buy, sell, trade, or search for astronomy equipment with other ORAS members.', 'oras-member-hub' ); ?></p>
+	<div class="oras-equipment-preview__intro">
+		<h3><?php esc_html_e( 'ORAS Equipment Exchange', 'oras-member-hub' ); ?></h3>
+		<p class="oras-equipment-subtitle"><?php esc_html_e( 'Buy, sell, trade, or search for astronomy equipment with other ORAS members.', 'oras-member-hub' ); ?></p>
+	</div>
 	<div class="oras-equipment-preview__row">
 		<?php foreach ( $posts as $listing ) : ?>
 			<?php require __DIR__ . '/card.php'; ?>

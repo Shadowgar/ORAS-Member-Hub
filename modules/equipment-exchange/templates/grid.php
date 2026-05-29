@@ -12,9 +12,11 @@
  */
 ?>
 <section class="oras-equipment-grid-page">
-	<h2><?php esc_html_e( 'ORAS Equipment Exchange', 'oras-member-hub' ); ?></h2>
-	<p><?php esc_html_e( 'Member-to-member astronomy equipment listings. ORAS does not process payment or arrange pickup.', 'oras-member-hub' ); ?></p>
-	<p class="oras-equipment-page-actions"><a class="button" href="<?php echo esc_url( $submit_url ); ?>"><?php esc_html_e( 'List Equipment', 'oras-member-hub' ); ?></a> <a class="button" href="<?php echo esc_url( $my_listings ); ?>"><?php esc_html_e( 'My Listings', 'oras-member-hub' ); ?></a></p>
+	<div class="oras-equipment-page-intro">
+		<h2><?php esc_html_e( 'ORAS Equipment Exchange', 'oras-member-hub' ); ?></h2>
+		<p><?php esc_html_e( 'Member-to-member astronomy equipment listings. ORAS does not process payment or arrange pickup.', 'oras-member-hub' ); ?></p>
+		<p class="oras-equipment-page-actions"><a class="button" href="<?php echo esc_url( $submit_url ); ?>"><?php esc_html_e( 'List Equipment', 'oras-member-hub' ); ?></a> <a class="button" href="<?php echo esc_url( $my_listings ); ?>"><?php esc_html_e( 'My Listings', 'oras-member-hub' ); ?></a></p>
+	</div>
 	<div class="oras-equipment-marketplace-layout">
 		<aside class="oras-equipment-filter-sidebar">
 			<h3><?php esc_html_e( 'Filter Results', 'oras-member-hub' ); ?></h3>
