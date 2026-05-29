@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ORAS Member Hub
  * Description: Member-facing dashboard hub for ORAS.
- * Version: 0.2.0
+ * Version: 0.2.1
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: ORAS
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'ORAS_MEMBER_HUB_VERSION' ) ) {
-	define( 'ORAS_MEMBER_HUB_VERSION', '0.2.0' );
+	define( 'ORAS_MEMBER_HUB_VERSION', '0.2.1' );
 }
 
 if ( ! defined( 'ORAS_MEMBER_HUB_FILE' ) ) {
