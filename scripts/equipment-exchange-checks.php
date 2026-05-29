@@ -22,7 +22,7 @@ $assert = static function ( $condition, $message ) use ( &$errors ) {
 	echo "FAIL: {$message}\n";
 };
 
-$assert( post_type_exists( 'oras_equipment_listing' ), 'CPT oras_equipment_listing is registered' );
+$assert( post_type_exists( 'oras_equip_listing' ), 'CPT oras_equip_listing is registered' );
 $assert( taxonomy_exists( 'oras_equipment_category' ), 'Taxonomy oras_equipment_category is registered' );
 $assert( taxonomy_exists( 'oras_equipment_condition' ), 'Taxonomy oras_equipment_condition is registered' );
 

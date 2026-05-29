@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * CPT class.
  */
 final class ORAS_MH_Equipment_Post_Type {
-	const POST_TYPE = 'oras_equipment_listing';
+	const POST_TYPE = 'oras_equip_listing';
 
 	/**
 	 * Register hooks.
