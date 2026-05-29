@@ -33,6 +33,7 @@ require_once ORAS_MEMBER_HUB_PATH . 'includes/services/class-oras-mh-conditions-
 require_once ORAS_MEMBER_HUB_PATH . 'includes/member-hub-modules.php';
 require_once ORAS_MEMBER_HUB_PATH . 'includes/member-hub-shortcode.php';
 require_once ORAS_MEMBER_HUB_PATH . 'includes/shortcodes/my-tickets.php';
+require_once ORAS_MEMBER_HUB_PATH . 'modules/equipment-exchange/class-equipment-exchange.php';
 
 if ( ! function_exists( 'oras_member_hub_bootstrap' ) ) {
 	/**
@@ -43,6 +44,7 @@ if ( ! function_exists( 'oras_member_hub_bootstrap' ) ) {
 	function oras_member_hub_bootstrap() {
 		oras_member_hub_register_shortcode();
 		oras_member_hub_register_my_tickets_shortcode();
+		ORAS_MH_Equipment_Exchange::register();
 	}
 }
 

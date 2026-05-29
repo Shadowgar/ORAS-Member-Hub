@@ -4,6 +4,7 @@
 
   <file>oras-member-hub.php</file>
   <file>includes</file>
+  <file>modules</file>
 
   <exclude-pattern>*/vendor/*</exclude-pattern>
   <exclude-pattern>*/.wp-env/*</exclude-pattern>

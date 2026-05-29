@@ -7,6 +7,7 @@ parameters:
   paths:
     - oras-member-hub.php
     - includes
+    - modules
   scanFiles:
     - stubs/wordpress-signatures.php
     - stubs/wordpress-function-stubs.php
