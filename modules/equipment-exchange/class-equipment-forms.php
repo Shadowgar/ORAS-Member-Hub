@@ -110,7 +110,8 @@ final class ORAS_MH_Equipment_Forms {
 			self::redirect_with_notice( 'error', __( 'You cannot edit this listing.', 'oras-member-hub' ) );
 		}
 
-		$result = self::build_post_data_from_request( $post_id );
+		$before = self::snapshot_listing_state( $post_id );
+		$result = self::build_post_data_from_request( $post_id, false );
 		if ( is_wp_error( $result ) ) {
 			self::redirect_with_notice( 'error', __( 'Unable to update listing. Please verify required fields.', 'oras-member-hub' ) );
 		}
@@ -123,7 +124,7 @@ final class ORAS_MH_Equipment_Forms {
 			)
 		);
 
-		self::save_meta_and_taxonomies( $post_id, $result, false );
+		self::save_meta_and_taxonomies( $post_id, $result, false, $before );
 		self::redirect_with_notice( 'success', __( 'Listing updated.', 'oras-member-hub' ) );
 	}
 
@@ -197,7 +198,7 @@ final class ORAS_MH_Equipment_Forms {
 	 * @param int $post_id Existing post ID.
 	 * @return array<string,mixed>|WP_Error
 	 */
-	private static function build_post_data_from_request( $post_id ) {
+	private static function build_post_data_from_request( $post_id, $is_new = true ) {
 		$post_id      = (int) $post_id;
 		$title        = sanitize_text_field( (string) wp_unslash( $_POST['listing_title'] ?? '' ) );
 		$description  = sanitize_textarea_field( (string) wp_unslash( $_POST['listing_description'] ?? '' ) );
@@ -218,7 +219,7 @@ final class ORAS_MH_Equipment_Forms {
 			return new WP_Error( 'invalid', __( 'Please complete all required fields.', 'oras-member-hub' ) );
 		}
 
-		if ( ! $agreement ) {
+		if ( $is_new && ! $agreement ) {
 			return new WP_Error( 'agreement', __( 'You must accept the agreement to submit.', 'oras-member-hub' ) );
 		}
 
@@ -231,7 +232,7 @@ final class ORAS_MH_Equipment_Forms {
 			return $gallery_ids;
 		}
 
-		if ( 0 === $post_id ) {
+		if ( $is_new ) {
 			if ( empty( $gallery_ids ) ) {
 				return new WP_Error( 'photo_required', __( 'At least one photo is required.', 'oras-member-hub' ) );
 			}
@@ -270,7 +271,7 @@ final class ORAS_MH_Equipment_Forms {
 	 * @param bool                $is_new Whether new listing.
 	 * @return void
 	 */
-	private static function save_meta_and_taxonomies( $post_id, $data, $is_new ) {
+	private static function save_meta_and_taxonomies( $post_id, $data, $is_new, $before = array() ) {
 		$post_id = (int) $post_id;
 
 		wp_set_object_terms( $post_id, array( (int) $data['category_id'] ), ORAS_MH_Equipment_Taxonomies::TAX_CATEGORY, false );
@@ -304,7 +305,7 @@ final class ORAS_MH_Equipment_Forms {
 		}
 
 		if ( ! $is_new ) {
-			self::maybe_demote_after_major_edit( $post_id, $data );
+			self::maybe_demote_after_major_edit( $post_id, $data, is_array( $before ) ? $before : array() );
 		}
 	}
 
@@ -315,17 +316,63 @@ final class ORAS_MH_Equipment_Forms {
 	 * @param array<string,mixed> $data Payload.
 	 * @return void
 	 */
-	private static function maybe_demote_after_major_edit( $post_id, $data ) {
+	private static function maybe_demote_after_major_edit( $post_id, $data, $before ) {
 		$settings = ORAS_MH_Equipment_Settings::get();
 		if ( empty( $settings['require_approval'] ) ) {
 			return;
 		}
 
-		$major_changes = ! empty( $data['listing_type'] ) || ! empty( $data['price_amount'] ) || ! empty( $data['gallery_image_ids'] );
+		$after = array(
+			'title'              => (string) $data['post_title'],
+			'description'        => (string) $data['post_content'],
+			'price_amount'       => (string) $data['price_amount'],
+			'category_id'        => (int) $data['category_id'],
+			'condition_id'       => (int) $data['condition_id'],
+			'contact_preference' => (string) $data['contact_preference'],
+			'gallery_hash'       => md5( wp_json_encode( array_map( 'intval', (array) $data['gallery_image_ids'] ) ) ),
+		);
+
+		$major_changes = false;
+		$keys          = array( 'title', 'description', 'price_amount', 'category_id', 'condition_id', 'contact_preference', 'gallery_hash' );
+		foreach ( $keys as $key ) {
+			$before_value = isset( $before[ $key ] ) ? (string) $before[ $key ] : '';
+			$after_value  = isset( $after[ $key ] ) ? (string) $after[ $key ] : '';
+			if ( $before_value !== $after_value ) {
+				$major_changes = true;
+				break;
+			}
+		}
+
 		if ( $major_changes ) {
 			ORAS_MH_Equipment_Fields::update_moderation_status( $post_id, 'pending_review' );
 			wp_update_post( array( 'ID' => $post_id, 'post_status' => 'pending' ) );
 		}
+	}
+
+	/**
+	 * Snapshot listing fields used to decide major edit moderation.
+	 *
+	 * @param int $post_id Listing ID.
+	 * @return array<string,mixed>
+	 */
+	private static function snapshot_listing_state( $post_id ) {
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return array();
+		}
+
+		$category_ids  = wp_get_object_terms( $post_id, ORAS_MH_Equipment_Taxonomies::TAX_CATEGORY, array( 'fields' => 'ids' ) );
+		$condition_ids = wp_get_object_terms( $post_id, ORAS_MH_Equipment_Taxonomies::TAX_CONDITION, array( 'fields' => 'ids' ) );
+
+		return array(
+			'title'              => (string) $post->post_title,
+			'description'        => (string) $post->post_content,
+			'price_amount'       => (string) get_post_meta( $post_id, ORAS_MH_Equipment_Fields::META_PRICE_AMOUNT, true ),
+			'category_id'        => ! empty( $category_ids ) && ! is_wp_error( $category_ids ) ? (int) $category_ids[0] : 0,
+			'condition_id'       => ! empty( $condition_ids ) && ! is_wp_error( $condition_ids ) ? (int) $condition_ids[0] : 0,
+			'contact_preference' => (string) get_post_meta( $post_id, ORAS_MH_Equipment_Fields::META_CONTACT_PREFERENCE, true ),
+			'gallery_hash'       => md5( wp_json_encode( array_map( 'intval', (array) get_post_meta( $post_id, ORAS_MH_Equipment_Fields::META_GALLERY_IMAGE_IDS, true ) ) ) ),
+		);
 	}
 
 	/**

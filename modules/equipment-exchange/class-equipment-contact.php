@@ -35,6 +35,8 @@ final class ORAS_MH_Equipment_Contact {
 			self::redirect_with_notice( 'error', __( 'Access denied.', 'oras-member-hub' ) );
 		}
 
+		$user_id = get_current_user_id();
+
 		$post_id = isset( $_POST['listing_id'] ) ? (int) $_POST['listing_id'] : 0;
 		$post    = get_post( $post_id );
 		if ( ! $post || ORAS_MH_Equipment_Post_Type::POST_TYPE !== $post->post_type ) {
@@ -47,6 +49,12 @@ final class ORAS_MH_Equipment_Contact {
 
 		if ( '' === $name || '' === $email || '' === $message ) {
 			self::redirect_with_notice( 'error', __( 'Please complete all contact form fields.', 'oras-member-hub' ) );
+		}
+
+		$rate_key = 'oras_eq_contact_' . $user_id . '_' . $post_id;
+		$sent     = (int) get_transient( $rate_key );
+		if ( $sent >= 5 ) {
+			self::redirect_with_notice( 'error', __( 'Rate limit reached for this listing. Please try again later.', 'oras-member-hub' ) );
 		}
 
 		$seller_email = (string) get_the_author_meta( 'user_email', (int) $post->post_author );
@@ -71,6 +79,7 @@ final class ORAS_MH_Equipment_Contact {
 		);
 		$headers = array( 'Reply-To: ' . $name . ' <' . $email . '>' );
 		wp_mail( $seller_email, $subject, $body, $headers );
+		set_transient( $rate_key, $sent + 1, HOUR_IN_SECONDS );
 
 		self::redirect_with_notice( 'success', __( 'Your message has been sent to the seller.', 'oras-member-hub' ) );
 	}

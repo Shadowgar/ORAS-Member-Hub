@@ -67,7 +67,8 @@ final class ORAS_MH_Equipment_Shortcodes {
 		}
 
 		self::enqueue_assets();
-		$posts       = self::query_listings( 24 );
+		$filters     = self::read_grid_filters();
+		$posts       = self::query_listings( 24, $filters );
 		$disclaimer  = ORAS_MH_Equipment_Settings::get()['disclaimer_text'];
 		$submit_url  = ORAS_MH_Equipment_Settings::get_page_url( 'submit_page_url' );
 		$my_listings = ORAS_MH_Equipment_Settings::get_page_url( 'my_listings_page_url' );
@@ -78,6 +79,19 @@ final class ORAS_MH_Equipment_Shortcodes {
 				'disclaimer'   => $disclaimer,
 				'submit_url'   => $submit_url,
 				'my_listings'  => $my_listings,
+				'filters'      => $filters,
+				'categories'   => get_terms(
+					array(
+						'taxonomy'   => ORAS_MH_Equipment_Taxonomies::TAX_CATEGORY,
+						'hide_empty' => false,
+					)
+				),
+				'conditions'   => get_terms(
+					array(
+						'taxonomy'   => ORAS_MH_Equipment_Taxonomies::TAX_CONDITION,
+						'hide_empty' => false,
+					)
+				),
 			)
 		);
 	}
@@ -139,6 +153,18 @@ final class ORAS_MH_Equipment_Shortcodes {
 			array(
 				'posts'       => $posts,
 				'notice_html' => self::notice_html(),
+				'categories'  => get_terms(
+					array(
+						'taxonomy'   => ORAS_MH_Equipment_Taxonomies::TAX_CATEGORY,
+						'hide_empty' => false,
+					)
+				),
+				'conditions'  => get_terms(
+					array(
+						'taxonomy'   => ORAS_MH_Equipment_Taxonomies::TAX_CONDITION,
+						'hide_empty' => false,
+					)
+				),
 			)
 		);
 	}
@@ -218,12 +244,12 @@ final class ORAS_MH_Equipment_Shortcodes {
 	 * @param int $limit Limit.
 	 * @return array<int,WP_Post>
 	 */
-	private static function query_listings( $limit ) {
-		return get_posts(
-			array(
+	private static function query_listings( $limit, $filters = array() ) {
+		$args = array(
 				'post_type'      => ORAS_MH_Equipment_Post_Type::POST_TYPE,
 				'post_status'    => 'publish',
 				'posts_per_page' => (int) $limit,
+				's'              => (string) ( $filters['search'] ?? '' ),
 				'meta_query'     => array(
 					'relation' => 'AND',
 					array(
@@ -236,7 +262,81 @@ final class ORAS_MH_Equipment_Shortcodes {
 						'compare' => 'NOT IN',
 					),
 				),
-			)
+			);
+
+		if ( ! empty( $filters['listing_type'] ) ) {
+			$args['meta_query'][] = array(
+				'key'   => ORAS_MH_Equipment_Fields::META_LISTING_TYPE,
+				'value' => (string) $filters['listing_type'],
+			);
+		}
+
+		if ( ! empty( $filters['status'] ) ) {
+			$args['meta_query'][] = array(
+				'key'   => ORAS_MH_Equipment_Fields::META_PUBLIC_STATUS,
+				'value' => (string) $filters['status'],
+			);
+		}
+
+		$price_min = isset( $filters['price_min'] ) ? (float) $filters['price_min'] : 0.0;
+		$price_max = isset( $filters['price_max'] ) ? (float) $filters['price_max'] : 0.0;
+		if ( $price_min > 0 ) {
+			$args['meta_query'][] = array(
+				'key'     => ORAS_MH_Equipment_Fields::META_PRICE_AMOUNT,
+				'value'   => $price_min,
+				'compare' => '>=',
+				'type'    => 'NUMERIC',
+			);
+		}
+		if ( $price_max > 0 ) {
+			$args['meta_query'][] = array(
+				'key'     => ORAS_MH_Equipment_Fields::META_PRICE_AMOUNT,
+				'value'   => $price_max,
+				'compare' => '<=',
+				'type'    => 'NUMERIC',
+			);
+		}
+
+		if ( ! empty( $filters['category'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => ORAS_MH_Equipment_Taxonomies::TAX_CATEGORY,
+				'field'    => 'term_id',
+				'terms'    => array( (int) $filters['category'] ),
+			);
+		}
+
+		if ( ! empty( $filters['condition'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => ORAS_MH_Equipment_Taxonomies::TAX_CONDITION,
+				'field'    => 'term_id',
+				'terms'    => array( (int) $filters['condition'] ),
+			);
+		}
+
+		if ( ! empty( $filters['sort'] ) && in_array( $filters['sort'], array( 'price_low', 'price_high' ), true ) ) {
+			$args['meta_key'] = ORAS_MH_Equipment_Fields::META_PRICE_AMOUNT;
+			$args['orderby']  = 'meta_value_num';
+			$args['order']    = 'price_low' === $filters['sort'] ? 'ASC' : 'DESC';
+		}
+
+		return get_posts( $args );
+	}
+
+	/**
+	 * Read grid filters from query string.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function read_grid_filters() {
+		return array(
+			'search'       => isset( $_GET['search'] ) ? sanitize_text_field( (string) wp_unslash( $_GET['search'] ) ) : '',
+			'listing_type' => isset( $_GET['listing_type'] ) ? sanitize_key( (string) wp_unslash( $_GET['listing_type'] ) ) : '',
+			'category'     => isset( $_GET['category'] ) ? (int) $_GET['category'] : 0,
+			'condition'    => isset( $_GET['condition'] ) ? (int) $_GET['condition'] : 0,
+			'status'       => isset( $_GET['status'] ) ? sanitize_key( (string) wp_unslash( $_GET['status'] ) ) : '',
+			'price_min'    => isset( $_GET['price_min'] ) ? (float) $_GET['price_min'] : 0,
+			'price_max'    => isset( $_GET['price_max'] ) ? (float) $_GET['price_max'] : 0,
+			'sort'         => isset( $_GET['sort'] ) ? sanitize_key( (string) wp_unslash( $_GET['sort'] ) ) : '',
 		);
 	}
 

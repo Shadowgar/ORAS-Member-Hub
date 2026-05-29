@@ -184,4 +184,21 @@ final class ORAS_MH_Equipment_Fields {
 		$labels = self::public_status_labels( $listing_type );
 		return isset( $labels[ $status ] );
 	}
+
+	/**
+	 * Get all public status labels used by filter controls.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function all_public_status_labels() {
+		return array(
+			'available' => __( 'Available / Still Looking', 'oras-member-hub' ),
+			'pending'   => __( 'Pending', 'oras-member-hub' ),
+			'sold'      => __( 'Sold', 'oras-member-hub' ),
+			'traded'    => __( 'Traded', 'oras-member-hub' ),
+			'found'     => __( 'Found', 'oras-member-hub' ),
+			'claimed'   => __( 'Claimed', 'oras-member-hub' ),
+			'expired'   => __( 'Expired', 'oras-member-hub' ),
+		);
+	}
 }
