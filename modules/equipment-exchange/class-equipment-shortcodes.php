@@ -242,6 +242,7 @@ final class ORAS_MH_Equipment_Shortcodes {
 	 * Query approved listings.
 	 *
 	 * @param int $limit Limit.
+	 * @param array<string,mixed> $filters Grid filters.
 	 * @return array<int,WP_Post>
 	 */
 	private static function query_listings( $limit, $filters = array() ) {

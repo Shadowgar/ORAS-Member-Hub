@@ -196,6 +196,7 @@ final class ORAS_MH_Equipment_Forms {
 	 * Build and validate listing payload.
 	 *
 	 * @param int $post_id Existing post ID.
+	 * @param bool $is_new Whether this is a new listing submission.
 	 * @return array<string,mixed>|WP_Error
 	 */
 	private static function build_post_data_from_request( $post_id, $is_new = true ) {
@@ -269,6 +270,7 @@ final class ORAS_MH_Equipment_Forms {
 	 * @param int                 $post_id Listing post ID.
 	 * @param array<string,mixed> $data Data.
 	 * @param bool                $is_new Whether new listing.
+	 * @param array<string,mixed> $before Snapshot before update.
 	 * @return void
 	 */
 	private static function save_meta_and_taxonomies( $post_id, $data, $is_new, $before = array() ) {
@@ -305,7 +307,7 @@ final class ORAS_MH_Equipment_Forms {
 		}
 
 		if ( ! $is_new ) {
-			self::maybe_demote_after_major_edit( $post_id, $data, is_array( $before ) ? $before : array() );
+			self::maybe_demote_after_major_edit( $post_id, $data, $before );
 		}
 	}
 
@@ -314,6 +316,7 @@ final class ORAS_MH_Equipment_Forms {
 	 *
 	 * @param int                 $post_id Listing ID.
 	 * @param array<string,mixed> $data Payload.
+	 * @param array<string,mixed> $before Snapshot before update.
 	 * @return void
 	 */
 	private static function maybe_demote_after_major_edit( $post_id, $data, $before ) {
@@ -336,7 +339,7 @@ final class ORAS_MH_Equipment_Forms {
 		$keys          = array( 'title', 'description', 'price_amount', 'category_id', 'condition_id', 'contact_preference', 'gallery_hash' );
 		foreach ( $keys as $key ) {
 			$before_value = isset( $before[ $key ] ) ? (string) $before[ $key ] : '';
-			$after_value  = isset( $after[ $key ] ) ? (string) $after[ $key ] : '';
+			$after_value  = (string) $after[ $key ];
 			if ( $before_value !== $after_value ) {
 				$major_changes = true;
 				break;

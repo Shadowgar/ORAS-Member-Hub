@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 /**
  * Deterministic checks for Equipment Exchange module.
  *

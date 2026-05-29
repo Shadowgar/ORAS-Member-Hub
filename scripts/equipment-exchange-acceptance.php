@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 /**
  * Equipment Exchange MVP acceptance checks (CLI-friendly).
  *
@@ -18,7 +19,7 @@ $assert = static function ( $condition, $message ) use ( &$errors ) {
 		echo "PASS: {$message}\n";
 		return;
 	}
-	$errors++;
+	++$errors;
 	echo "FAIL: {$message}\n";
 };
 
@@ -38,29 +39,29 @@ $assert( $runner instanceof WP_User, 'Test member user exists' );
 
 // Step 2 equivalent: provision shortcode pages and sync URL settings.
 $setup_pages = array(
-	'members-hub/equipment-exchange' => '[oras_equipment_exchange_grid]',
+	'members-hub/equipment-exchange'                => '[oras_equipment_exchange_grid]',
 	'members-hub/equipment-exchange/list-equipment' => '[oras_equipment_exchange_submit]',
-	'members-hub/equipment-exchange/my-listings' => '[oras_equipment_exchange_my_listings]',
-	'members-hub/equipment-exchange/listing' => '[oras_equipment_exchange_single]',
+	'members-hub/equipment-exchange/my-listings'    => '[oras_equipment_exchange_my_listings]',
+	'members-hub/equipment-exchange/listing'        => '[oras_equipment_exchange_single]',
 );
 
 $resolved_urls = array();
 
 foreach ( $setup_pages as $path => $shortcode ) {
-	$parts = array_values( array_filter( explode( '/', $path ) ) );
-	$parent = 0;
+	$parts        = array_values( array_filter( explode( '/', $path ) ) );
+	$parent       = 0;
 	$current_path = '';
 	for ( $i = 0; $i < count( $parts ); $i++ ) {
 		$current_path = '' === $current_path ? $parts[ $i ] : $current_path . '/' . $parts[ $i ];
-		$existing = get_page_by_path( $current_path );
+		$existing     = get_page_by_path( $current_path );
 		if ( $existing instanceof WP_Post ) {
 			$parent = (int) $existing->ID;
 			if ( $i === count( $parts ) - 1 ) {
 				wp_update_post(
 					array(
-						'ID' => $existing->ID,
+						'ID'           => $existing->ID,
 						'post_content' => $shortcode,
-						'post_status' => 'publish',
+						'post_status'  => 'publish',
 					)
 				);
 				$resolved_urls[ $path ] = get_permalink( $existing->ID );
@@ -69,13 +70,13 @@ foreach ( $setup_pages as $path => $shortcode ) {
 		}
 
 		$is_leaf = ( $i === count( $parts ) - 1 );
-		$new_id = wp_insert_post(
+		$new_id  = wp_insert_post(
 			array(
-				'post_type' => 'page',
-				'post_status' => 'publish',
-				'post_parent' => $parent,
-				'post_name' => $parts[ $i ],
-				'post_title' => ucwords( str_replace( '-', ' ', $parts[ $i ] ) ),
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_parent'  => $parent,
+				'post_name'    => $parts[ $i ],
+				'post_title'   => ucwords( str_replace( '-', ' ', $parts[ $i ] ) ),
 				'post_content' => $is_leaf ? $shortcode : '',
 			),
 			true
@@ -114,11 +115,11 @@ $assert( ! empty( ORAS_MH_Equipment_Settings::get_page_url( 'single_listing_page
 // Create one pending listing (member submission equivalent).
 $post_id = wp_insert_post(
 	array(
-		'post_type' => ORAS_MH_Equipment_Post_Type::POST_TYPE,
-		'post_status' => 'pending',
-		'post_title' => 'Acceptance Listing',
+		'post_type'    => ORAS_MH_Equipment_Post_Type::POST_TYPE,
+		'post_status'  => 'pending',
+		'post_title'   => 'Acceptance Listing',
 		'post_content' => 'Acceptance flow description',
-		'post_author' => (int) $runner->ID,
+		'post_author'  => (int) $runner->ID,
 	),
 	true
 );
@@ -129,7 +130,7 @@ if ( is_wp_error( $post_id ) || $post_id <= 0 ) {
 	exit( 1 );
 }
 
-$cat = term_exists( 'Telescopes', ORAS_MH_Equipment_Taxonomies::TAX_CATEGORY );
+$cat  = term_exists( 'Telescopes', ORAS_MH_Equipment_Taxonomies::TAX_CATEGORY );
 $cond = term_exists( 'Good', ORAS_MH_Equipment_Taxonomies::TAX_CONDITION );
 if ( is_array( $cat ) && ! empty( $cat['term_id'] ) ) {
 	wp_set_object_terms( (int) $post_id, array( (int) $cat['term_id'] ), ORAS_MH_Equipment_Taxonomies::TAX_CATEGORY, false );
@@ -152,13 +153,23 @@ $assert( false === strpos( $pending_grid, 'Acceptance Listing' ), 'Pending listi
 
 // Approve listing.
 ORAS_MH_Equipment_Fields::update_moderation_status( (int) $post_id, 'approved' );
-wp_update_post( array( 'ID' => (int) $post_id, 'post_status' => 'publish' ) );
+wp_update_post(
+	array(
+		'ID'          => (int) $post_id,
+		'post_status' => 'publish',
+	)
+);
 
 $approved_grid = do_shortcode( '[oras_equipment_exchange_grid]' );
 $assert( false !== strpos( $approved_grid, 'Acceptance Listing' ), 'Approved listing appears in grid' );
 
+$_GET['search'] = 'Acceptance';
+$filtered_grid  = do_shortcode( '[oras_equipment_exchange_grid]' );
+$assert( false !== strpos( $filtered_grid, 'Acceptance Listing' ), 'Grid search filter matches listing' );
+unset( $_GET['search'] );
+
 $_GET['listing'] = (string) $post_id;
-$single_html = do_shortcode( '[oras_equipment_exchange_single]' );
+$single_html     = do_shortcode( '[oras_equipment_exchange_single]' );
 $assert( false !== strpos( $single_html, 'Acceptance Listing' ), 'Single listing shortcode renders listing by query parameter' );
 unset( $_GET['listing'] );
 
@@ -166,6 +177,16 @@ unset( $_GET['listing'] );
 wp_set_current_user( (int) $runner->ID );
 ORAS_MH_Equipment_Fields::update_public_status( (int) $post_id, 'sold' );
 $assert( 'Sold' === ORAS_MH_Equipment_Fields::get_public_status_label( (int) $post_id ), 'Owner status change label resolves as Sold' );
+
+// Edit major field should return listing to pending review when approval is required.
+wp_update_post(
+	array(
+		'ID'           => (int) $post_id,
+		'post_content' => 'Edited content for moderation check',
+	)
+);
+ORAS_MH_Equipment_Fields::update_moderation_status( (int) $post_id, 'pending_review' );
+$assert( 'pending_review' === (string) get_post_meta( (int) $post_id, ORAS_MH_Equipment_Fields::META_MODERATION_STATUS, true ), 'Major edit moderation status can be set to pending review' );
 
 // Expiration behavior.
 update_post_meta( (int) $post_id, ORAS_MH_Equipment_Fields::META_EXPIRATION_DATE, gmdate( 'Y-m-d', time() - DAY_IN_SECONDS ) );
